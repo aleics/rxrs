@@ -1,5 +1,4 @@
 use std::thread;
-use std::sync::{Arc, Mutex};
 
 use crossbeam::{Sender, Receiver, unbounded};
 
@@ -9,7 +8,7 @@ use crate::observer::{Observer, NextHandler, ErrorHandler, CompleteHandler};
 
 pub struct Observable<T> {
     tx: Sender<T>,
-    rx: Arc<Mutex<Receiver<T>>>
+    rx: Receiver<T>
 }
 
 impl<T: 'static + Sized + Send> Observable<T> {
@@ -42,14 +41,12 @@ impl<T: 'static + Sized + Send> Observable<T> {
         );
 
         // open a new thread and wait for events of the observable
-        let rx_thread = self.rx.clone();
+        let rx = self.rx.clone();
         thread::spawn(move || {
-            let guard = rx_thread.lock().unwrap();
-            match guard.recv() {
+            match rx.recv() {
                 Err(e) => observer.error(RxError::SubscribeError(e)),
                 Ok(data) => observer.next(data)
             };
-            drop(guard);
         });
 
         subscription
