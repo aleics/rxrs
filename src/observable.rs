@@ -13,13 +13,17 @@ pub struct Observable<T> {
 
 impl<T: 'static + Sized + Send> Observable<T> {
 
-    pub fn of(value: T) -> Observable<T> {
+    fn new() -> Observable<T> {
         let (tx, rx): (Sender<T>, Receiver<T>) = unbounded();
-        let observable = Observable { tx, rx: Arc::new(Mutex::new(rx)) };
+        Observable { tx, rx }
+    }
 
-        let tx_thread = observable.tx.clone();
+    pub fn of(value: T) -> Observable<T> {
+        let observable = Observable::<T>::new();
+
+        let tx = observable.tx.clone();
         thread::spawn(move || {
-            tx_thread.send(value).unwrap();
+            tx.send(value).unwrap();
         });
 
         observable
