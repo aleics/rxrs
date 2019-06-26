@@ -18,8 +18,4 @@ fn main() {
     );
 
     println!("after second subscription");
-
-    loop {
-
-    }
 }
