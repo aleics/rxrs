@@ -33,18 +33,8 @@ impl<T: Sized> Subscriber<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::{Display, Formatter, Result};
     use super::{Subscriber};
     use crate::error::RxError;
-
-    #[derive(Debug)]
-    struct TestError;
-
-    impl Display for TestError {
-        fn fmt(&self, f: &mut Formatter) -> Result {
-            write!(f, "something happened")
-        }
-    }
 
     #[test]
     fn new() {
