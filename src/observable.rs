@@ -1,32 +1,24 @@
-use std::thread;
-
-use crossbeam::{Sender, Receiver, unbounded};
-
 use crate::subscription::Subscription;
 use crate::error::RxError;
-use crate::observer::{Observer, NextHandler, ErrorHandler, CompleteHandler};
+use crate::subscriber::{Subscriber, NextHandler, ErrorHandler, CompleteHandler};
+
+type Observer<T> = Box<dyn Fn(Subscriber<T>) -> ()>;
 
 pub struct Observable<T> {
-    tx: Sender<T>,
-    rx: Receiver<T>
+    observer: Observer<T>
 }
 
-impl<T: 'static + Sized + Send> Observable<T> {
+impl<T: 'static + Copy> Observable<T> {
 
-    fn new() -> Observable<T> {
-        let (tx, rx): (Sender<T>, Receiver<T>) = unbounded();
-        Observable { tx, rx }
+    pub fn new(observer: Observer<T>) -> Observable<T> {
+        Observable { observer }
     }
 
     pub fn of(value: T) -> Observable<T> {
-        let observable = Observable::<T>::new();
-
-        let tx = observable.tx.clone();
-        thread::spawn(move || {
-            tx.send(value).unwrap();
+        let observer = Box::new(move |subscriber: Subscriber<T>| {
+            subscriber.next(value);
         });
-
-        observable
+        Observable::new(observer)
     }
 
     pub fn subscribe(
@@ -39,19 +31,12 @@ impl<T: 'static + Sized + Send> Observable<T> {
         let mut subscription = Subscription::new();
         subscription.subscribe();
 
-        // generate an observer from the input events
-        let observer = Observer::<T>::new(
+        // generate a subscriber from the input events
+        let subscriber = Subscriber::<T>::new(
             next_handler, error_handler, complete_handler
         );
 
-        // open a new thread and wait for events of the observable
-        let rx = self.rx.clone();
-        thread::spawn(move || {
-            match rx.recv() {
-                Err(e) => observer.error(RxError::SubscribeError(e)),
-                Ok(data) => observer.next(data)
-            };
-        });
+        (self.observer)(subscriber);
 
         subscription
     }

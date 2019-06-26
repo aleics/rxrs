@@ -1,18 +1,23 @@
 use rxrs::observable::Observable;
 
 fn main() {
-    let obs = Observable::of(5);
-    obs.subscribe(
-        |value| println!("first-sub next: {}", value),
-            |error| println!("first-sub error: {}", error),
-            || println!("first-sub completed!")
+    let sync_observable = Observable::of(1);
+
+    sync_observable.subscribe(
+        |value| { println!("first subscription: {}", value) },
+        |error| { println!("{:?}", error); },
+        || { println!("first subscription: completed!"); }
     );
 
-    obs.subscribe(
-        |value| println!("second-sub next: {}", value),
-        |error| println!("second-sub error: {}", error),
-        || println!("second-sub completed!")
+    println!("after first subscription");
+
+    sync_observable.subscribe(
+        |value| { println!("second subscription: {}", value) },
+        |error| { println!("{:?}", error); },
+        || { println!("second subscription: completed!"); }
     );
+
+    println!("after second subscription");
 
     loop {
 
