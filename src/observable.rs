@@ -14,9 +14,12 @@ impl<T: 'static + Copy> Observable<T> {
         Observable { observer }
     }
 
-    pub fn of(value: T) -> Observable<T> {
+    pub fn of(values: &'static [T]) -> Observable<T> {
         let observer = Box::new(move |subscriber: Subscriber<T>| {
-            subscriber.next(value);
+            for value in values {
+                subscriber.next(*value);
+            }
+            subscriber.complete();
         });
         Observable::new(observer)
     }

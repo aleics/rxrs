@@ -1,7 +1,7 @@
 use rxrs::observable::Observable;
 
 fn main() {
-    let sync_observable = Observable::of(1);
+    let sync_observable = Observable::of(&[1, 2, 3]);
 
     sync_observable.subscribe(
         |value| { println!("first subscription: {}", value) },
