@@ -1,7 +1,7 @@
-use rxrs::observable::Observable;
+use rxrs::observable::of;
 
 fn main() {
-    let obs = Observable::of(&[1, 2, 3]);
+    let obs = of(&[1, 2, 3]);
 
     obs.subscribe(
         |value| { println!("first subscription: {}", value) },

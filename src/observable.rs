@@ -14,16 +14,6 @@ impl<T: 'static> Observable<T> {
         Observable { observer }
     }
 
-    pub fn of(values: &'static [T]) -> Observable<T> {
-        let observer = Box::new(move |subscriber: Subscriber<T>| {
-            for value in values {
-                subscriber.next(value);
-            }
-            subscriber.complete();
-        });
-        Observable::new(observer)
-    }
-
     pub fn subscribe(
         &self,
         next_handler: NextHandler<T>,
@@ -43,4 +33,14 @@ impl<T: 'static> Observable<T> {
 
         subscription
     }
+}
+
+pub fn of<T>(values: &'static [T]) -> Observable<T> {
+    let observer = Box::new(move |subscriber: Subscriber<T>| {
+        for value in values {
+            subscriber.next(value);
+        }
+        subscriber.complete();
+    });
+    Observable::new(observer)
 }
