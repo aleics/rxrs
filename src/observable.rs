@@ -1,16 +1,16 @@
 use crate::subscription::Subscription;
 use crate::error::RxError;
-use crate::subscriber::{Subscriber, NextHandler, ErrorHandler, CompleteHandler};
+use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler};
 
-type Observer<T> = Box<dyn Fn(Subscriber<T>) -> ()>;
+type SubscribeFn<T> = Box<dyn Fn(Subscriber<T>) -> ()>;
 
 pub struct Observable<T> {
-    observer: Observer<T>
+    observer: SubscribeFn<T>
 }
 
 impl<T: 'static> Observable<T> {
 
-    pub fn new(observer: Observer<T>) -> Observable<T> {
+    pub fn new(observer: SubscribeFn<T>) -> Observable<T> {
         Observable { observer }
     }
 
@@ -36,7 +36,7 @@ impl<T: 'static> Observable<T> {
 }
 
 pub fn of<T>(values: &'static [T]) -> Observable<T> {
-    let observer = Box::new(move |subscriber: Subscriber<T>| {
+    let observer = Box::new(move |mut subscriber: Subscriber<T>| {
         for value in values {
             subscriber.next(value);
         }

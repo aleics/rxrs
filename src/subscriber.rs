@@ -1,5 +1,11 @@
 use crate::error::RxError;
 
+pub trait Observer<T> {
+    fn next(&self, value: &T) -> ();
+    fn error(&self, e: RxError) -> ();
+    fn complete(&mut self) -> ();
+}
+
 pub type NextHandler<T> = fn(&T) -> ();
 pub type ErrorHandler<E> = fn(E) -> ();
 pub type CompleteHandler = fn() -> ();
@@ -7,33 +13,42 @@ pub type CompleteHandler = fn() -> ();
 pub struct Subscriber<T> {
     next_handler: NextHandler<T>,
     error_handler: ErrorHandler<RxError>,
-    complete_handler: CompleteHandler
+    complete_handler: CompleteHandler,
+    stopped: bool
 }
 
 impl<T: Sized> Subscriber<T> {
-
     pub fn new(
         next_handler: NextHandler<T>,
-        error_handler:  ErrorHandler<RxError>,
+        error_handler: ErrorHandler<RxError>,
         complete_handler: CompleteHandler
     ) -> Subscriber<T> {
-        Subscriber { next_handler, error_handler, complete_handler }
+        Subscriber { next_handler, error_handler, complete_handler, stopped: false }
     }
+}
 
-    pub fn next(&self, t: &T) {
-        (self.next_handler)(t);
+impl<T: Sized> Observer<T> for Subscriber<T> {
+    fn next(&self, t: &T) {
+        if !self.stopped {
+            (self.next_handler)(t);
+        }
     }
-    pub fn error(&self, e: RxError) {
-        (self.error_handler)(e);
+    fn error(&self, e: RxError) {
+        if !self.stopped {
+            (self.error_handler)(e);
+        }
     }
-    pub fn complete(&self) {
-        (self.complete_handler)();
+    fn complete(&mut self) {
+        if !self.stopped {
+            self.stopped = true;
+            (self.complete_handler)();
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Subscriber};
+    use super::{Subscriber, Observer};
     use crate::error::RxError;
 
     #[test]
@@ -69,7 +84,7 @@ mod tests {
 
     #[test]
     fn complete() {
-        let observer = Subscriber::<u32>::new(
+        let mut observer = Subscriber::<u32>::new(
             |_value| assert_eq!(true, false),
             |_err| assert_eq!(true, false),
             || assert_eq!(true, true)
