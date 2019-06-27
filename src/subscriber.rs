@@ -1,6 +1,6 @@
 use crate::error::RxError;
 
-pub type NextHandler<T> = fn(T) -> ();
+pub type NextHandler<T> = fn(&T) -> ();
 pub type ErrorHandler<E> = fn(E) -> ();
 pub type CompleteHandler = fn() -> ();
 
@@ -20,7 +20,7 @@ impl<T: Sized> Subscriber<T> {
         Subscriber { next_handler, error_handler, complete_handler }
     }
 
-    pub fn next(&self, t: T) {
+    pub fn next(&self, t: &T) {
         (self.next_handler)(t);
     }
     pub fn error(&self, e: RxError) {
@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn new() {
-        let observer = Subscriber::<u32>::new(
+        Subscriber::<u32>::new(
             |value| println!("{}", value),
             |err| println!("{}", err),
             || println!("complete")
@@ -48,12 +48,12 @@ mod tests {
     #[test]
     fn next() {
         let observer = Subscriber::<u32>::new(
-            |value| assert_eq!(1, value),
+            |value| assert_eq!(&1, value),
             |_err| assert_eq!(true, false),
             || assert_eq!(true, false)
         );
 
-        observer.next(1);
+        observer.next(&1);
     }
 
     #[test]

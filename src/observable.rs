@@ -8,7 +8,7 @@ pub struct Observable<T> {
     observer: Observer<T>
 }
 
-impl<T: 'static + Copy> Observable<T> {
+impl<T: 'static> Observable<T> {
 
     pub fn new(observer: Observer<T>) -> Observable<T> {
         Observable { observer }
@@ -17,7 +17,7 @@ impl<T: 'static + Copy> Observable<T> {
     pub fn of(values: &'static [T]) -> Observable<T> {
         let observer = Box::new(move |subscriber: Subscriber<T>| {
             for value in values {
-                subscriber.next(*value);
+                subscriber.next(value);
             }
             subscriber.complete();
         });
