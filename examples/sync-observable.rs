@@ -15,7 +15,7 @@ fn main() {
         |value| { println!("second subscription: {}", value) },
         |error| { println!("{:?}", error); },
         || { println!("second subscription: completed!"); }
-    );
+    ).unwrap();
 
     println!("after second subscription");
 }
