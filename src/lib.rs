@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 pub mod subscriber;
 pub mod error;
 pub mod subscription;
