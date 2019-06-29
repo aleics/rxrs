@@ -53,43 +53,45 @@ mod tests {
 
     #[test]
     fn new() {
-        Subscriber::<u32>::new(
+        let subscriber = Subscriber::<u32>::new(
             |value| println!("{}", value),
             |err| println!("{}", err),
             || println!("complete")
         );
+        assert_eq!(subscriber.stopped, false);
     }
 
     #[test]
     fn next() {
-        let observer = Subscriber::<u32>::new(
+        let subscriber = Subscriber::<u32>::new(
             |value| assert_eq!(&1, value),
             |_err| assert_eq!(true, false),
             || assert_eq!(true, false)
         );
 
-        observer.next(&1);
+        subscriber.next(&1);
     }
 
     #[test]
     fn error() {
-        let observer = Subscriber::<u32>::new(
+        let subscriber = Subscriber::<u32>::new(
             |_value| assert_eq!(true, false),
             |_err| assert_eq!(true, true),
             || assert_eq!(true, false)
         );
 
-        observer.error(RxError::CustomError("some error".to_string()));
+        subscriber.error(RxError::CustomError("some error".to_string()));
     }
 
     #[test]
     fn complete() {
-        let mut observer = Subscriber::<u32>::new(
+        let mut subscriber = Subscriber::<u32>::new(
             |_value| assert_eq!(true, false),
             |_err| assert_eq!(true, false),
             || assert_eq!(true, true)
         );
 
-        observer.complete();
+        subscriber.complete();
+        assert_eq!(subscriber.stopped, true);
     }
 }
