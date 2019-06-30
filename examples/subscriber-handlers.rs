@@ -2,7 +2,7 @@ use rxrs::observable::{Observable, SubscriberFn};
 use rxrs::subscriber::Observer;
 
 fn main() {
-    let subscriber_fn: SubscriberFn<String> = Box::new(|mut subscriber| {
+    let subscriber_fn: SubscriberFn<String> = Box::new(|mut subscriber, _| {
         subscriber.next(&String::from("Oh"));
         subscriber.next(&String::from("hi"));
         subscriber.next(&String::from("Mark!"));
