@@ -5,15 +5,15 @@ use crate::subscription::Subscription;
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler};
 
-type SubscribeFn<T> = Box<dyn Fn(Subscriber<T>) -> ()>;
+pub type SubscriberFn<T> = Box<dyn Fn(Subscriber<T>) -> ()>;
 
 pub struct Observable<T> {
-    observer: SubscribeFn<T>
+    observer: SubscriberFn<T>
 }
 
 impl<T: 'static> Observable<T> {
 
-    pub fn new(observer: SubscribeFn<T>) -> Observable<T> {
+    pub fn new(observer: SubscriberFn<T>) -> Observable<T> {
         Observable { observer }
     }
 

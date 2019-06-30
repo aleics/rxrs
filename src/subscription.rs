@@ -1,5 +1,4 @@
-
-
+#[derive(Default)]
 pub struct Subscription {
     pub closed: bool
 }
@@ -11,10 +10,6 @@ impl Subscription {
 
     pub fn subscribe(&mut self) {
         self.closed = false;
-    }
-
-    pub fn unsubscribe(&mut self) {
-        self.closed = true;
     }
 }
 
@@ -33,13 +28,5 @@ mod tests {
         let mut subscription = Subscription::new();
         subscription.subscribe();
         assert_eq!(subscription.closed, false);
-    }
-
-    #[test]
-    fn unsubscribe() {
-        let mut subscription = Subscription::new();
-        subscription.subscribe();
-        subscription.unsubscribe();
-        assert_eq!(subscription.closed, true);
     }
 }

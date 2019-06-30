@@ -15,5 +15,5 @@ fn main() {
         |value| println!("{}", value),
         |error| println!("{}", error),
         || println!("completed")
-    ).unwrap();
+    );
 }
