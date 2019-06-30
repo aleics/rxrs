@@ -1,3 +1,5 @@
+use std::sync::mpsc::Receiver;
+
 use crate::error::RxError;
 
 pub trait Observer<T> {
@@ -9,6 +11,8 @@ pub trait Observer<T> {
 pub type NextHandler<T> = fn(&T) -> ();
 pub type ErrorHandler<E> = fn(E) -> ();
 pub type CompleteHandler = fn() -> ();
+
+pub type SubscriberFn<T> = Box<dyn Fn(Subscriber<T>, Receiver<()>) -> ()>;
 
 pub struct Subscriber<T> {
     next_handler: NextHandler<T>,

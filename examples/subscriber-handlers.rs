@@ -1,5 +1,5 @@
-use rxrs::observable::{Observable, ObservableLike, SubscriberFn};
-use rxrs::subscriber::Observer;
+use rxrs::observable::{Observable, ObservableLike};
+use rxrs::subscriber::{Observer, SubscriberFn};
 
 fn main() {
     let subscriber_fn: SubscriberFn<String> = Box::new(|mut subscriber, _| {

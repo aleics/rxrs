@@ -4,9 +4,7 @@ use std::sync::mpsc::{channel, Sender, Receiver};
 
 use crate::subscription::Subscription;
 use crate::error::RxError;
-use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler};
-
-pub type SubscriberFn<T> = Box<dyn Fn(Subscriber<T>, Receiver<()>) -> ()>;
+use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler, SubscriberFn};
 
 /// `Observable` is a representation of a collection of values over a period of time. Observables
 /// define event streams that can be subscribed to.
