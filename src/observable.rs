@@ -44,17 +44,17 @@ impl<T> Observable<T> {
 }
 
 pub fn of<T>(values: &'static [T]) -> Observable<T> {
-    let observer = Box::new(move |mut subscriber: Subscriber<T>, _: Receiver<()>| {
+    let observer = move |mut subscriber: Subscriber<T>, _: Receiver<()>| {
         for value in values {
             subscriber.next(value);
         }
         subscriber.complete();
-    });
-    Observable::new(observer)
+    };
+    Observable::new(Box::new(observer))
 }
 
 pub fn interval(interval_time: u64) -> Observable<u64> {
-    let observer = Box::new(move |subscriber: Subscriber<u64>, unsubscriber: Receiver<()>| {
+    let observer = move |subscriber: Subscriber<u64>, unsubscriber: Receiver<()>| {
         spawn(move || {
             let mut count = 0;
 
@@ -69,6 +69,6 @@ pub fn interval(interval_time: u64) -> Observable<u64> {
                 }
             }
         });
-    });
-    Observable::new(observer)
+    };
+    Observable::new(Box::new(observer))
 }
