@@ -12,7 +12,7 @@ pub struct Observable<T> {
     observer: SubscriberFn<T>
 }
 
-impl<T: 'static> Observable<T> {
+impl<T> Observable<T> {
 
     pub fn new(observer: SubscriberFn<T>) -> Observable<T> {
         Observable { observer }
