@@ -17,7 +17,7 @@ pub struct Subscriber<T> {
     stopped: bool
 }
 
-impl<T: Sized> Subscriber<T> {
+impl<T> Subscriber<T> {
     pub fn new(
         next_handler: NextHandler<T>,
         error_handler: ErrorHandler<RxError>,
@@ -27,7 +27,7 @@ impl<T: Sized> Subscriber<T> {
     }
 }
 
-impl<T: Sized> Observer<T> for Subscriber<T> {
+impl<T> Observer<T> for Subscriber<T> {
     fn next(&self, t: &T) {
         if !self.stopped {
             (self.next_handler)(t);
