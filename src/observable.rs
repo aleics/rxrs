@@ -1,3 +1,6 @@
+use std::thread;
+use std::time::Duration;
+
 use crate::subscription::Subscription;
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler};
@@ -41,6 +44,22 @@ pub fn of<T>(values: &'static [T]) -> Observable<T> {
             subscriber.next(value);
         }
         subscriber.complete();
+    });
+    Observable::new(observer)
+}
+
+pub fn interval(interval_time: u64) -> Observable<u64> {
+    let observer = Box::new(move |subscriber: Subscriber<u64>| {
+        thread::spawn(move || {
+            let mut count = 0;
+
+            loop {
+                thread::sleep(Duration::from_millis(interval_time));
+                subscriber.next(&count);
+
+                count = count + 1;
+            }
+        });
     });
     Observable::new(observer)
 }
