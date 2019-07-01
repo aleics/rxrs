@@ -1,4 +1,4 @@
-use rxrs::observable::{Observable, SubscriberFn};
+use rxrs::observable::{Observable, ObservableLike, SubscriberFn};
 use rxrs::subscriber::Observer;
 
 fn main() {

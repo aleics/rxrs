@@ -15,15 +15,25 @@ pub struct Observable<T> {
 }
 
 impl<T> Observable<T> {
-
     /// Creates a new `Observable` defined by a subscriber function.
     pub fn new(observer: SubscriberFn<T>) -> Observable<T> {
         Observable { observer }
     }
+}
 
+pub trait ObservableLike<T> {
+    fn subscribe(
+        &self,
+        next_handler: NextHandler<T>,
+        error_handler:  ErrorHandler<RxError>,
+        complete_handler: CompleteHandler
+    ) -> Subscription;
+}
+
+impl<T> ObservableLike<T> for Observable<T> {
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
     /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
-    pub fn subscribe(
+    fn subscribe(
         &self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
@@ -50,7 +60,7 @@ impl<T> Observable<T> {
 
 /// `of` creates a finite number of observables with a defined value.
 /// ```rust
-/// use rxrs::observable::of;
+/// use rxrs::observable::{of, ObservableLike};
 ///
 /// let observable = of(&[1, 2, 3]);
 /// observable.subscribe(

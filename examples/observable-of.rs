@@ -1,4 +1,4 @@
-use rxrs::observable::of;
+use rxrs::observable::{of, ObservableLike};
 
 fn main() {
     let obs = of(&[1, 2, 3]);

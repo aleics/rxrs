@@ -1,4 +1,4 @@
-use rxrs::observable::interval;
+use rxrs::observable::{interval, ObservableLike};
 use std::thread;
 use std::time::Duration;
 
