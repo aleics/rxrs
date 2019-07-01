@@ -4,12 +4,12 @@ use crate::error::RxError;
 
 pub trait Observer<T> {
     fn next(&self, value: &T) -> ();
-    fn error(&self, e: RxError) -> ();
+    fn error(&self, e: &RxError) -> ();
     fn complete(&mut self) -> ();
 }
 
 pub type NextHandler<T> = fn(&T);
-pub type ErrorHandler<E> = fn(E);
+pub type ErrorHandler<E> = fn(&E);
 pub type CompleteHandler = fn();
 
 pub type SubscriberFn<T> = Box<dyn Fn(Subscriber<T>, Receiver<()>) -> ()>;
@@ -37,7 +37,7 @@ impl<T> Observer<T> for Subscriber<T> {
             (self.next_handler)(t);
         }
     }
-    fn error(&self, e: RxError) {
+    fn error(&self, e: &RxError) {
         if !self.stopped {
             (self.error_handler)(e);
         }
@@ -84,7 +84,7 @@ mod tests {
             || assert_eq!(true, false)
         );
 
-        subscriber.error(RxError::CustomError("some error".to_string()));
+        subscriber.error(&RxError::CustomError("some error".to_string()));
     }
 
     #[test]

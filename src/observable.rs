@@ -21,7 +21,7 @@ impl<T> Observable<T> {
 
 pub trait ObservableLike<T> {
     fn subscribe(
-        &self,
+        &mut self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
@@ -32,7 +32,7 @@ impl<T> ObservableLike<T> for Observable<T> {
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
     /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
     fn subscribe(
-        &self,
+        &mut self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
@@ -60,8 +60,7 @@ impl<T> ObservableLike<T> for Observable<T> {
 /// ```rust
 /// use rxrs::observable::{of, ObservableLike};
 ///
-/// let observable = of(&[1, 2, 3]);
-/// observable.subscribe(
+///  of(&[1, 2, 3]).subscribe(
 ///   |value| println!("{}", value),
 ///   |error| println!("{}", error),
 ///   || println!("completed")
@@ -80,13 +79,12 @@ pub fn of<T>(values: &'static [T]) -> Observable<T> {
 /// `interval` creates an infinite observable that emits sequential numbers every specified
 /// interval of time.
 /// ```rust
-/// use rxrs::observable::interval;
+/// use rxrs::observable::{interval, ObservableLike};
 /// use std::thread;
 /// use std::time::Duration;
 ///
-/// let observable = interval(1);
 ///
-/// let mut subscription = observable.subscribe(
+/// let mut subscription = interval(1).subscribe(
 ///   |value| println!("{}", value),
 ///   |error| println!("{}", error),
 ///   || println!("completed")
