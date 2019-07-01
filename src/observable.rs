@@ -8,16 +8,21 @@ use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, Complet
 
 pub type SubscriberFn<T> = Box<dyn Fn(Subscriber<T>, Receiver<()>) -> ()>;
 
+/// `Observable` is a representation of a collection of values over a period of time. Observables
+/// define event streams that can be subscribed to.
 pub struct Observable<T> {
     observer: SubscriberFn<T>
 }
 
 impl<T> Observable<T> {
 
+    /// Creates a new `Observable` defined by a subscriber function.
     pub fn new(observer: SubscriberFn<T>) -> Observable<T> {
         Observable { observer }
     }
 
+    /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
+    /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
     pub fn subscribe(
         &self,
         next_handler: NextHandler<T>,
@@ -43,6 +48,17 @@ impl<T> Observable<T> {
     }
 }
 
+/// `of` creates a finite number of observables with a defined value.
+/// ```rust
+/// use rxrs::observable::of;
+///
+/// let observable = of(&[1, 2, 3]);
+/// observable.subscribe(
+///   |value| println!("{}", value),
+///   |error| println!("{}", error),
+///   || println!("completed")
+/// );
+/// ```
 pub fn of<T>(values: &'static [T]) -> Observable<T> {
     let observer = move |mut subscriber: Subscriber<T>, _: Receiver<()>| {
         for value in values {
@@ -53,6 +69,28 @@ pub fn of<T>(values: &'static [T]) -> Observable<T> {
     Observable::new(Box::new(observer))
 }
 
+/// `interval` creates an infinite observable that emits sequential numbers every specified
+/// interval of time.
+/// ```rust
+/// use rxrs::observable::interval;
+/// use std::thread;
+/// use std::time::Duration;
+///
+/// let observable = interval(1);
+///
+/// let mut subscription = observable.subscribe(
+///   |value| println!("{}", value),
+///   |error| println!("{}", error),
+///   || println!("completed")
+/// );
+///
+/// let j = thread::spawn(move || {
+///   thread::sleep(Duration::from_millis(5));
+///   subscription.unsubscribe();
+/// });
+///
+/// j.join().unwrap();
+/// ```
 pub fn interval(interval_time: u64) -> Observable<u64> {
     let observer = move |subscriber: Subscriber<u64>, unsubscriber: Receiver<()>| {
         spawn(move || {

@@ -3,20 +3,18 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
-    let observable = interval(1000);
-    let mut sub = observable.subscribe(
+    let observable = interval(1);
+    let mut subscription = observable.subscribe(
         |value| println!("{}", value),
         |error| println!("{}", error),
         || println!("completed")
     );
 
-    println!("subscribed");
-
-    thread::spawn(move || {
-        thread::sleep(Duration::from_secs(3));
-        sub.unsubscribe();
+    let j = thread::spawn(move || {
+        thread::sleep(Duration::from_millis(5));
+        subscription.unsubscribe();
         println!("unsubscribed");
     });
 
-    loop { }
+    j.join().unwrap();
 }
