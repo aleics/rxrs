@@ -8,9 +8,9 @@ pub trait Observer<T> {
     fn complete(&mut self) -> ();
 }
 
-pub type NextHandler<T> = fn(&T) -> ();
-pub type ErrorHandler<E> = fn(E) -> ();
-pub type CompleteHandler = fn() -> ();
+pub type NextHandler<T> = fn(&T);
+pub type ErrorHandler<E> = fn(E);
+pub type CompleteHandler = fn();
 
 pub type SubscriberFn<T> = Box<dyn Fn(Subscriber<T>, Receiver<()>) -> ()>;
 
