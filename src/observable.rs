@@ -23,7 +23,7 @@ pub trait ObservableLike<T> {
     type Subscription: Subscription;
 
     fn subscribe(
-        &mut self,
+        &self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
@@ -36,7 +36,7 @@ impl<T> ObservableLike<T> for Observable<T> {
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
     /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
     fn subscribe(
-        &mut self,
+        &self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler

@@ -1,7 +1,7 @@
 use rxrs::observable::{of, ObservableLike};
 
 fn main() {
-    let mut obs = of(&[1, 2, 3]);
+    let obs = of(&[1, 2, 3]);
 
     obs.subscribe(
         |value| { println!("first subscription: {}", value) },
