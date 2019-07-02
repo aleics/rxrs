@@ -36,20 +36,17 @@ impl<T> ObservableLike<T> for Subject<T> {
 
 impl<T> Observer<T> for Subject<T> {
     fn next(&self, value: &T) {
-        for observer in self.observers.borrow().iter() {
-            observer.next(value);
-        }
+        self.observers.borrow().iter()
+            .for_each(|observer| observer.next(value));
     }
 
     fn error(&self, e: &RxError) {
-        for observer in self.observers.borrow().iter() {
-            observer.error(e);
-        }
+        self.observers.borrow().iter()
+            .for_each(|observer| observer.error(e));
     }
 
     fn complete(&mut self) -> () {
-        for observer in self.observers.borrow_mut().iter_mut() {
-            observer.complete();
-        }
+        self.observers.borrow_mut().iter_mut()
+            .for_each(|observer| observer.complete());
     }
 }
