@@ -1,5 +1,5 @@
 use crate::error::RxError;
-use crate::subscription::Subscription;
+use crate::subscription::{SubjectSubscription};
 use crate::subscriber::{NextHandler, ErrorHandler, CompleteHandler, Subscriber, Observer};
 use crate::observable::ObservableLike;
 
@@ -14,12 +14,14 @@ impl<T> Subject<T> {
 }
 
 impl<T> ObservableLike<T> for Subject<T> {
+    type Subscription = SubjectSubscription;
+
     fn subscribe(
         &mut self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
-    ) -> Subscription {
+    ) -> SubjectSubscription {
         // generate a subscriber from the input events
         let subscriber = Subscriber::<T>::new(
             next_handler, error_handler, complete_handler
@@ -27,7 +29,7 @@ impl<T> ObservableLike<T> for Subject<T> {
 
         self.observers.push(subscriber);
 
-        Subscription::new()
+        SubjectSubscription::new()
     }
 }
 

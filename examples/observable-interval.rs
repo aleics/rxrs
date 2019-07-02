@@ -1,6 +1,7 @@
 use rxrs::observable::{interval, ObservableLike};
 use std::thread;
 use std::time::Duration;
+use rxrs::subscription::Subscription;
 
 fn main() {
     let mut subscription = interval(1)

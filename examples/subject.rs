@@ -1,6 +1,7 @@
 use rxrs::subject::Subject;
 use rxrs::subscriber::Observer;
 use rxrs::observable::ObservableLike;
+use rxrs::subscription::Subscription;
 
 fn main() {
     let mut subject = Subject::<i32>::new();

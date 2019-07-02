@@ -2,7 +2,7 @@ use std::thread::{spawn, sleep};
 use std::time::Duration;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
-use crate::subscription::Subscription;
+use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler, SubscriberFn};
 
@@ -20,15 +20,19 @@ impl<T> Observable<T> {
 }
 
 pub trait ObservableLike<T> {
+    type Subscription: Subscription;
+
     fn subscribe(
         &mut self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
-    ) -> Subscription;
+    ) -> Self::Subscription;
 }
 
 impl<T> ObservableLike<T> for Observable<T> {
+    type Subscription = ObservableSubscription;
+
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
     /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
     fn subscribe(
@@ -36,7 +40,7 @@ impl<T> ObservableLike<T> for Observable<T> {
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
-    ) -> Subscription {
+    ) -> Self::Subscription {
         // generate a subscriber from the input events
         let subscriber = Subscriber::<T>::new(
             next_handler, error_handler, complete_handler
@@ -49,10 +53,7 @@ impl<T> ObservableLike<T> for Observable<T> {
 
         // create a subscription and subscribe to the previous callback
         // a channel sender is sent to the subscription so that it can be unsubscribed
-        let mut subscription = Subscription::new();
-        subscription.subscribe(tx);
-
-        subscription
+        ObservableSubscription::new(tx)
     }
 }
 
@@ -82,6 +83,7 @@ pub fn of<T>(values: &'static [T]) -> Observable<T> {
 /// use rxrs::observable::{interval, ObservableLike};
 /// use std::thread;
 /// use std::time::Duration;
+/// use rxrs::subscription::Subscription;
 ///
 ///
 /// let mut subscription = interval(1).subscribe(
