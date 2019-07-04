@@ -4,17 +4,28 @@ use std::time::Duration;
 use rxrs::subscription::Subscription;
 
 fn main() {
-    let mut subscription = interval(1)
-        .subscribe(
-            |value| println!("{}", value),
-            |error| println!("{}", error),
-            || println!("completed")
-        );
+    let observable = interval(1);
+
+    let mut first_subscription = observable.subscribe(
+        |value| println!("first: {}", value),
+        |error| println!("{}", error),
+        || println!("completed")
+    );
+
+    let mut second_subscription = observable.subscribe(
+        |value| println!("second: {}", value),
+        |error| println!("{}", error),
+        || println!("completed")
+    );
 
     let j = thread::spawn(move || {
         thread::sleep(Duration::from_millis(5));
-        subscription.unsubscribe();
-        println!("unsubscribed");
+        first_subscription.unsubscribe();
+        println!("first unsubscribed");
+
+        thread::sleep(Duration::from_millis(5));
+        second_subscription.unsubscribe();
+        println!("second unsubscribed");
     });
 
     j.join().unwrap();
