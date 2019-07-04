@@ -1,4 +1,7 @@
 use std::sync::mpsc::Sender;
+use std::cell::RefCell;
+
+use crate::subscriber::Subscriber;
 
 pub trait Subscription {
     fn unsubscribe(&mut self);
@@ -24,19 +27,25 @@ impl Subscription for ObservableSubscription {
     }
 }
 
-pub struct SubjectSubscription {
-    pub closed: bool
+pub struct SubjectSubscription<'a, T> {
+    pub closed: bool,
+    subject_ref: &'a RefCell<Vec<Subscriber<T>>>,
+    item: usize
 }
 
-impl SubjectSubscription {
-    pub fn new() -> SubjectSubscription {
-        SubjectSubscription { closed: false }
+impl<'a, T> SubjectSubscription<'a, T> {
+    pub fn new(subject_ref: &'a RefCell<Vec<Subscriber<T>>>) -> SubjectSubscription<'a, T> {
+        let item = subject_ref.borrow().len() - 1;
+        SubjectSubscription { closed: false, subject_ref, item }
     }
 }
 
-impl Subscription for SubjectSubscription {
+impl<'a, T> Subscription for SubjectSubscription<'a, T> {
     fn unsubscribe(&mut self) {
-        self.closed = true;
+        if !self.closed {
+            self.subject_ref.borrow_mut().remove(self.item);
+            self.closed = true;
+        }
     }
 }
 

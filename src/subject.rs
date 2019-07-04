@@ -8,21 +8,17 @@ pub struct Subject<T> {
     observers: RefCell<Vec<Subscriber<T>>>
 }
 
-impl<T> Subject<T> {
+impl<'b, T> Subject<T> {
     pub fn new() -> Subject<T> {
         Subject { observers: RefCell::new(Vec::new()) }
     }
-}
 
-impl<T> ObservableLike<T> for Subject<T> {
-    type Subscription = SubjectSubscription;
-
-    fn subscribe(
-        &self,
+    pub fn subscribe<'d>(
+        &'b self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
-    ) -> SubjectSubscription {
+    ) -> SubjectSubscription<'b, T> {
         // generate a subscriber from the input events
         let subscriber = Subscriber::<T>::new(
             next_handler, error_handler, complete_handler
@@ -30,7 +26,7 @@ impl<T> ObservableLike<T> for Subject<T> {
 
         self.observers.borrow_mut().push(subscriber);
 
-        SubjectSubscription::new()
+        SubjectSubscription::new(&self.observers)
     }
 }
 
