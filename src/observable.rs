@@ -19,18 +19,18 @@ impl<T> Observable<T> {
     }
 }
 
-pub trait ObservableLike<T> {
+pub trait ObservableLike<'a, T> {
     type Subscription: Subscription;
 
     fn subscribe(
-        &self,
+        &'a self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
     ) -> Self::Subscription;
 }
 
-impl<T> ObservableLike<T> for Observable<T> {
+impl<'a, T> ObservableLike<'a, T> for Observable<T> {
     type Subscription = ObservableSubscription;
 
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function

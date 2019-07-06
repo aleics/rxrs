@@ -12,13 +12,17 @@ impl<'b, T> Subject<T> {
     pub fn new() -> Subject<T> {
         Subject { observers: RefCell::new(Vec::new()) }
     }
+}
 
-    pub fn subscribe<'d>(
-        &'b self,
+impl<'a, T: 'a> ObservableLike<'a, T> for Subject<T> {
+    type Subscription = SubjectSubscription<'a, T>;
+
+    fn subscribe(
+        &'a self,
         next_handler: NextHandler<T>,
         error_handler:  ErrorHandler<RxError>,
         complete_handler: CompleteHandler
-    ) -> SubjectSubscription<'b, T> {
+    ) -> SubjectSubscription<'a, T> {
         // generate a subscriber from the input events
         let subscriber = Subscriber::<T>::new(
             next_handler, error_handler, complete_handler

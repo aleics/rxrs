@@ -29,8 +29,8 @@ impl Subscription for ObservableSubscription {
 
 pub struct SubjectSubscription<'a, T> {
     pub closed: bool,
-    subject_ref: &'a RefCell<Vec<Subscriber<T>>>,
-    item: usize
+    pub subject_ref: &'a RefCell<Vec<Subscriber<T>>>,
+    pub item: usize
 }
 
 impl<'a, T> SubjectSubscription<'a, T> {
@@ -54,6 +54,8 @@ mod tests {
     use super::ObservableSubscription;
     use std::sync::mpsc::channel;
     use crate::subscription::{Subscription, SubjectSubscription};
+    use std::cell::RefCell;
+    use crate::subscriber::Subscriber;
 
     #[test]
     fn observable_new() {
@@ -78,14 +80,18 @@ mod tests {
 
     #[test]
     fn subject_new() {
-        let subscription = SubjectSubscription::new();
+        let observers = RefCell::new(Vec::<Subscriber<i32>>::new());
+        let subscription = SubjectSubscription::new(&observers);
         assert_eq!(subscription.closed, false);
     }
 
     #[test]
     fn subject_unsubscribe() {
-        let mut subscription = SubjectSubscription::new();
+        let observers = RefCell::new(Vec::<Subscriber<i32>>::new());
+        let mut subscription = SubjectSubscription::new(&observers);
+
         subscription.unsubscribe();
+
         assert_eq!(subscription.closed, true);
     }
 }
