@@ -5,7 +5,7 @@ use crate::observable::ObservableLike;
 use std::cell::RefCell;
 
 pub struct Subject<T> {
-    observers: RefCell<Vec<Subscriber<T>>>
+    observers: RefCell<Vec<Option<Subscriber<T>>>>
 }
 
 impl<'b, T> Subject<T> {
@@ -28,7 +28,7 @@ impl<'a, T: 'a> ObservableLike<'a, T> for Subject<T> {
             next_handler, error_handler, complete_handler
         );
 
-        self.observers.borrow_mut().push(subscriber);
+        self.observers.borrow_mut().push(Some(subscriber));
 
         SubjectSubscription::new(&self.observers)
     }
@@ -37,16 +37,28 @@ impl<'a, T: 'a> ObservableLike<'a, T> for Subject<T> {
 impl<T> Observer<T> for Subject<T> {
     fn next(&self, value: &T) {
         self.observers.borrow().iter()
-            .for_each(|observer| observer.next(value));
+            .for_each(|item| {
+                if let Some(observer) = item {
+                    observer.next(value);
+                }
+            });
     }
 
     fn error(&self, e: &RxError) {
         self.observers.borrow().iter()
-            .for_each(|observer| observer.error(e));
+            .for_each(|item| {
+                if let Some(observer) = item {
+                    observer.error(e);
+                }
+            });
     }
 
     fn complete(&mut self) -> () {
         self.observers.borrow_mut().iter_mut()
-            .for_each(|observer| observer.complete());
+            .for_each(|item| {
+                if let Some(observer) = item {
+                    observer.complete();
+                }
+            });
     }
 }

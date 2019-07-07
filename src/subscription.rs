@@ -29,12 +29,12 @@ impl Subscription for ObservableSubscription {
 
 pub struct SubjectSubscription<'a, T> {
     pub closed: bool,
-    pub subject_ref: &'a RefCell<Vec<Subscriber<T>>>,
+    pub subject_ref: &'a RefCell<Vec<Option<Subscriber<T>>>>,
     pub item: usize
 }
 
 impl<'a, T> SubjectSubscription<'a, T> {
-    pub fn new(subject_ref: &'a RefCell<Vec<Subscriber<T>>>) -> SubjectSubscription<'a, T> {
+    pub fn new(subject_ref: &'a RefCell<Vec<Option<Subscriber<T>>>>) -> SubjectSubscription<'a, T> {
         let item = subject_ref.borrow().len() - 1;
         SubjectSubscription { closed: false, subject_ref, item }
     }
@@ -43,7 +43,8 @@ impl<'a, T> SubjectSubscription<'a, T> {
 impl<'a, T> Subscription for SubjectSubscription<'a, T> {
     fn unsubscribe(&mut self) {
         if !self.closed {
-            self.subject_ref.borrow_mut().remove(self.item);
+            let mut observers = self.subject_ref.borrow_mut();
+            observers[self.item] = None;
             self.closed = true;
         }
     }
@@ -80,18 +81,63 @@ mod tests {
 
     #[test]
     fn subject_new() {
-        let observers = RefCell::new(Vec::<Subscriber<i32>>::new());
-        let subscription = SubjectSubscription::new(&observers);
+        let subscriber: Subscriber<i32> = Subscriber::new(
+            |value| println!("{}", value),
+            |e| println!("{}", e),
+            || println!("complete")
+        );
+        let mut observers = Vec::new();
+        observers.push(Some(subscriber));
+
+        let observers_ref = &RefCell::new(observers);
+        let subscription = SubjectSubscription::new(observers_ref);
+
         assert_eq!(subscription.closed, false);
     }
 
     #[test]
     fn subject_unsubscribe() {
-        let observers = RefCell::new(Vec::<Subscriber<i32>>::new());
-        let mut subscription = SubjectSubscription::new(&observers);
+        let subscriber: Subscriber<i32> = Subscriber::new(
+            |value| println!("{}", value),
+            |e| println!("{}", e),
+            || println!("complete")
+        );
+        let mut observers = Vec::new();
+        observers.push(Some(subscriber));
+
+        let observers_ref = &RefCell::new(observers);
+        let mut subscription = SubjectSubscription::new(observers_ref);
 
         subscription.unsubscribe();
 
         assert_eq!(subscription.closed, true);
+    }
+
+    #[test]
+    fn subject_multiple_unsubscribe() {
+        let subscriber_a: Subscriber<i32> = Subscriber::new(
+            |value| println!("{}", value),
+            |e| println!("{}", e),
+            || println!("complete")
+        );
+        let mut observers = Vec::new();
+        observers.push(Some(subscriber_a));
+
+        let observers_ref = RefCell::new(observers);
+        let mut first = SubjectSubscription::new(&observers_ref);
+
+        let subscriber_b: Subscriber<i32> = Subscriber::new(
+            |value| println!("{}", value),
+            |e| println!("{}", e),
+            || println!("complete")
+        );
+        observers_ref.borrow_mut().push(Some(subscriber_b));
+        let mut second = SubjectSubscription::new(&observers_ref);
+
+        first.unsubscribe();
+        assert_eq!(first.closed, true);
+
+        second.unsubscribe();
+        assert_eq!(second.closed, true);
     }
 }

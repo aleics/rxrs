@@ -1,26 +1,29 @@
 use rxrs::subject::Subject;
 use rxrs::subscriber::Observer;
 use rxrs::subscription::Subscription;
+use rxrs::observable::ObservableLike;
 
 fn main() {
     let subject = Subject::<i32>::new();
-    subject.subscribe(
-        |value| println!("{}", value),
-        |e| println!("{}", e),
+    let mut first = subject.subscribe(
+        |value| println!("first {}", value),
+        |e| println!("first {}", e),
         || println!("complete")
     );
 
-    let mut subscription = subject.subscribe(
-        |value| println!("{}", value),
-        |e| println!("{}", e),
+    let mut second = subject.subscribe(
+        |value| println!("second {}", value),
+        |e| println!("second {}", e),
         || println!("complete")
     );
 
     subject.next(&0);
 
+    first.unsubscribe();
+
     subject.next(&1);
 
-    subscription.unsubscribe();
+    second.unsubscribe();
 
-    subject.next(&2);
+    subject.next(&2); // this should not be printed
 }
