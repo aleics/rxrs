@@ -2,9 +2,12 @@ use std::sync::mpsc::Receiver;
 
 use crate::error::RxError;
 
-pub trait Observer<T> {
-    fn next(&self, value: &T) -> ();
-    fn error(&self, e: &RxError) -> ();
+pub trait Observer {
+    type Value;
+    type Error;
+
+    fn next(&self, value: &Self::Value) -> ();
+    fn error(&self, e: &Self::Error) -> ();
     fn complete(&mut self) -> ();
 }
 
@@ -31,13 +34,16 @@ impl<T> Subscriber<T> {
     }
 }
 
-impl<T> Observer<T> for Subscriber<T> {
-    fn next(&self, t: &T) {
+impl<T> Observer for Subscriber<T> {
+    type Value = T;
+    type Error = RxError;
+
+    fn next(&self, t: &Self::Value) {
         if !self.stopped {
             (self.next_handler)(t);
         }
     }
-    fn error(&self, e: &RxError) {
+    fn error(&self, e: &Self::Error) {
         if !self.stopped {
             (self.error_handler)(e);
         }

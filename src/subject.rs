@@ -34,8 +34,11 @@ impl<'a, T: 'a> ObservableLike<'a, T> for Subject<T> {
     }
 }
 
-impl<T> Observer<T> for Subject<T> {
-    fn next(&self, value: &T) {
+impl<T> Observer for Subject<T> {
+    type Value = T;
+    type Error = RxError;
+
+    fn next(&self, value: &Self::Value) {
         self.observers.borrow().iter()
             .for_each(|item| {
                 if let Some(observer) = item {
@@ -44,7 +47,7 @@ impl<T> Observer<T> for Subject<T> {
             });
     }
 
-    fn error(&self, e: &RxError) {
+    fn error(&self, e: &Self::Error) {
         self.observers.borrow().iter()
             .for_each(|item| {
                 if let Some(observer) = item {
