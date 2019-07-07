@@ -1,11 +1,11 @@
 use crate::error::RxError;
-use crate::subscription::{SubjectSubscription};
+use crate::subscription::{SubjectSubscription, TrackedSubjectObservers};
 use crate::subscriber::{NextHandler, ErrorHandler, CompleteHandler, Subscriber, Observer};
 use crate::observable::ObservableLike;
 use std::cell::RefCell;
 
 pub struct Subject<T> {
-    observers: RefCell<Vec<Option<Subscriber<T>>>>
+    observers: TrackedSubjectObservers<T>
 }
 
 impl<'b, T> Subject<T> {

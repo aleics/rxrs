@@ -27,9 +27,11 @@ impl Subscription for ObservableSubscription {
     }
 }
 
+pub type TrackedSubjectObservers<T> = RefCell<Vec<Option<Subscriber<T>>>>;
+
 pub struct SubjectSubscription<'a, T> {
     pub closed: bool,
-    pub subject_ref: &'a RefCell<Vec<Option<Subscriber<T>>>>,
+    pub subject_ref: &'a TrackedSubjectObservers<T>,
     pub item: usize
 }
 
