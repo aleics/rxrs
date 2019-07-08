@@ -9,13 +9,13 @@ use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, Complet
 /// `Observable` is a representation of a collection of values over a period of time. Observables
 /// define event streams that can be subscribed to.
 pub struct Observable<T> {
-    observer: SubscriberFn<T>
+    observer_fn: SubscriberFn<T>
 }
 
 impl<T> Observable<T> {
     /// Creates a new `Observable` defined by a subscriber function.
-    pub fn new(observer: SubscriberFn<T>) -> Observable<T> {
-        Observable { observer }
+    pub fn new(observer_fn: SubscriberFn<T>) -> Observable<T> {
+        Observable { observer_fn }
     }
 }
 
@@ -49,7 +49,7 @@ impl<'a, T> ObservableLike<'a, T> for Observable<T> {
         // call the observer callback function and include a channel receiver for the
         // a possible unsubscribe action
         let (tx, rx): (Sender<()>, Receiver<()>) = channel();
-        (self.observer)(subscriber, rx);
+        (self.observer_fn)(subscriber, rx);
 
         // create a subscription and subscribe to the previous callback
         // a channel sender is sent to the subscription so that it can be unsubscribed
