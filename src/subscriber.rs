@@ -14,19 +14,20 @@ pub type ErrorHandler<E> = fn(&E);
 pub type CompleteHandler = fn();
 
 pub struct Subscriber<T> {
-    next_handler: NextHandler<T>,
+    next_fn: Box<dyn Fn(&T) + Send>,
     error_handler: ErrorHandler<RxError>,
     complete_handler: CompleteHandler,
     stopped: bool
 }
 
 impl<T> Subscriber<T> {
-    pub fn new(
-        next_handler: NextHandler<T>,
+    pub fn new<F>(
+        next: F,
         error_handler: ErrorHandler<RxError>,
         complete_handler: CompleteHandler
-    ) -> Subscriber<T> {
-        Subscriber { next_handler, error_handler, complete_handler, stopped: false }
+    ) -> Subscriber<T>
+        where F: Fn(&T) + 'static + Send {
+        Subscriber { next_fn: Box::new(next), error_handler, complete_handler, stopped: false }
     }
 }
 
@@ -36,7 +37,7 @@ impl<T> Observer for Subscriber<T> {
 
     fn next(&self, t: &Self::Value) {
         if !self.stopped {
-            (self.next_handler)(t);
+            (self.next_fn)(t);
         }
     }
     fn error(&self, e: &Self::Error) {

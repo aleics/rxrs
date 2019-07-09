@@ -14,7 +14,7 @@ impl<'b, T> Subject<T> {
     }
 }
 
-impl<'a, T: 'a> ObservableLike<'a, T> for Subject<T> {
+impl<'a, T: 'static> ObservableLike<'a, T> for Subject<T> {
     type Subscription = SubjectSubscription<'a, T>;
 
     fn subscribe(

@@ -46,7 +46,7 @@ pub trait ObservableLike<'a, T> {
     ) -> Self::Subscription;
 }
 
-impl<'a, T> ObservableLike<'a, T> for Observable<T> {
+impl<'a, T: 'static> ObservableLike<'a, T> for Observable<T> {
     type Subscription = ObservableSubscription;
 
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
