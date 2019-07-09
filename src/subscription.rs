@@ -36,7 +36,7 @@ pub struct SubjectSubscription<'a, T> {
 }
 
 impl<'a, T> SubjectSubscription<'a, T> {
-    pub fn new(subject_ref: &'a RefCell<Vec<Option<Subscriber<T>>>>) -> SubjectSubscription<'a, T> {
+    pub fn new(subject_ref: &'a TrackedSubjectObservers<T>) -> SubjectSubscription<'a, T> {
         let item = subject_ref.borrow().len() - 1;
         SubjectSubscription { closed: false, subject_ref, item }
     }
