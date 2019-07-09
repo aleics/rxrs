@@ -4,7 +4,7 @@ use std::sync::mpsc::{channel, Sender, Receiver};
 
 use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
-use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler};
+use crate::subscriber::{Subscriber, Observer};
 
 struct ObservableConstructor<T> {
     func: Box<dyn Fn(Subscriber<T>, Receiver<()>)>
@@ -38,12 +38,10 @@ impl<T> Observable<T> {
 pub trait ObservableLike<'a, T> {
     type Subscription: Subscription;
 
-    fn subscribe(
-        &'a self,
-        next_handler: NextHandler<T>,
-        error_handler:  ErrorHandler<RxError>,
-        complete_handler: CompleteHandler
-    ) -> Self::Subscription;
+    fn subscribe<N, E, C>(&'a self, next: N, error:  E, complete: C) -> Self::Subscription
+        where N: Fn(&T) + 'static + Send,
+              E: Fn(&RxError) + 'static + Send,
+              C: Fn() + 'static + Send;
 }
 
 impl<'a, T: 'static> ObservableLike<'a, T> for Observable<T> {
@@ -51,15 +49,13 @@ impl<'a, T: 'static> ObservableLike<'a, T> for Observable<T> {
 
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
     /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
-    fn subscribe(
-        &self,
-        next_handler: NextHandler<T>,
-        error_handler:  ErrorHandler<RxError>,
-        complete_handler: CompleteHandler
-    ) -> Self::Subscription {
+    fn subscribe<N, E, C>(&self, next: N, error:  E, complete: C) -> Self::Subscription
+        where N: Fn(&T) + 'static + Send,
+              E: Fn(&RxError) + 'static + Send,
+              C: Fn() + 'static + Send {
         // generate a subscriber from the input events
         let subscriber = Subscriber::<T>::new(
-            next_handler, error_handler, complete_handler
+             Box::new(next), Box::new(error),Box::new(complete)
         );
 
         // call the observer callback function and include a channel receiver for the

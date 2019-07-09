@@ -9,10 +9,6 @@ pub trait Observer {
     fn complete(&mut self) -> ();
 }
 
-pub type NextHandler<T> = fn(&T);
-pub type ErrorHandler<E> = fn(&E);
-pub type CompleteHandler = fn();
-
 pub struct Subscriber<T> {
     next_fn: Box<dyn Fn(&T) + Send>,
     error_fn: Box<dyn Fn(&RxError) + Send>,
@@ -21,8 +17,8 @@ pub struct Subscriber<T> {
 }
 
 impl<T> Subscriber<T> {
-    pub fn new<F, E, C>(next: F, error: E, complete: C) -> Subscriber<T>
-        where F: Fn(&T) + 'static + Send,
+    pub fn new<N, E, C>(next: N, error: E, complete: C) -> Subscriber<T>
+        where N: Fn(&T) + 'static + Send,
               E: Fn(&RxError) + 'static + Send,
               C: Fn() + 'static + Send {
         Subscriber {

@@ -1,6 +1,6 @@
 use crate::error::RxError;
 use crate::subscription::{SubjectSubscription, TrackedSubjectObservers};
-use crate::subscriber::{NextHandler, ErrorHandler, CompleteHandler, Subscriber, Observer};
+use crate::subscriber::{Observer, Subscriber};
 use crate::observable::ObservableLike;
 use std::cell::RefCell;
 
@@ -17,12 +17,15 @@ impl<'b, T> Subject<T> {
 impl<'a, T: 'static> ObservableLike<'a, T> for Subject<T> {
     type Subscription = SubjectSubscription<'a, T>;
 
-    fn subscribe(
+    fn subscribe<F, E, C>(
         &'a self,
-        next_handler: NextHandler<T>,
-        error_handler:  ErrorHandler<RxError>,
-        complete_handler: CompleteHandler
-    ) -> SubjectSubscription<'a, T> {
+        next_handler: F,
+        error_handler:  E,
+        complete_handler: C
+    ) -> SubjectSubscription<'a, T>
+        where F: Fn(&T) + 'static + Send,
+              E: Fn(&RxError) + 'static + Send,
+              C: Fn() + 'static + Send {
         // generate a subscriber from the input events
         let subscriber = Subscriber::<T>::new(
             next_handler, error_handler, complete_handler
