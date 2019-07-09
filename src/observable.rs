@@ -80,7 +80,7 @@ impl<'a, T: 'static> ObservableLike<'a, T> for Observable<T> {
 /// );
 /// ```
 pub fn of<T>(values: &'static [T]) -> Observable<T> {
-    let observer = move |mut subscriber: Subscriber<T>, _: Receiver<()>| {
+    let observer = move |mut subscriber: Subscriber<T>, _| {
         for value in values {
             subscriber.next(value);
         }
