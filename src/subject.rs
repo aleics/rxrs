@@ -56,7 +56,7 @@ impl<T> Observer for Subject<T> {
             });
     }
 
-    fn complete(&mut self) -> () {
+    fn complete(&mut self) {
         self.observers.borrow_mut().iter_mut()
             .for_each(|item| {
                 if let Some(observer) = item {

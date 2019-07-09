@@ -4,18 +4,34 @@ use std::sync::mpsc::{channel, Sender, Receiver};
 
 use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
-use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler, SubscriberFn};
+use crate::subscriber::{Subscriber, Observer, NextHandler, ErrorHandler, CompleteHandler};
+
+struct ObservableConstructor<T> {
+    func: Box<dyn Fn(Subscriber<T>, Receiver<()>)>
+}
+
+impl<'a, T> ObservableConstructor<T> {
+    pub fn new<F>(func: F) -> ObservableConstructor<T>
+        where F: Fn(Subscriber<T>, Receiver<()>) + 'static {
+        ObservableConstructor { func: Box::new(func) }
+    }
+
+    pub fn call(&self, subscriber: Subscriber<T>, unsubscriber: Receiver<()>) {
+        (self.func)(subscriber, unsubscriber)
+    }
+}
 
 /// `Observable` is a representation of a collection of values over a period of time. Observables
 /// define event streams that can be subscribed to.
 pub struct Observable<T> {
-    observer_fn: SubscriberFn<T>
+    observer_fn: ObservableConstructor<T>
 }
 
 impl<T> Observable<T> {
     /// Creates a new `Observable` defined by a subscriber function.
-    pub fn new(observer_fn: SubscriberFn<T>) -> Observable<T> {
-        Observable { observer_fn }
+    pub fn new<F>(func: F) -> Observable<T>
+        where F: Fn(Subscriber<T>, Receiver<()>) + 'static {
+        Observable { observer_fn: ObservableConstructor::new(func) }
     }
 }
 
@@ -49,7 +65,7 @@ impl<'a, T> ObservableLike<'a, T> for Observable<T> {
         // call the observer callback function and include a channel receiver for the
         // a possible unsubscribe action
         let (tx, rx): (Sender<()>, Receiver<()>) = channel();
-        (self.observer_fn)(subscriber, rx);
+        self.observer_fn.call(subscriber, rx);
 
         // create a subscription and subscribe to the previous callback
         // a channel sender is sent to the subscription so that it can be unsubscribed
