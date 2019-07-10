@@ -54,10 +54,11 @@ impl<'a, T> Subscription for SubjectSubscription<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use super::ObservableSubscription;
     use std::sync::mpsc::channel;
-    use crate::subscription::{Subscription, SubjectSubscription};
     use std::cell::RefCell;
+
+    use super::ObservableSubscription;
+    use crate::subscription::{Subscription, SubjectSubscription};
     use crate::subscriber::Subscriber;
 
     #[test]

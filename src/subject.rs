@@ -1,8 +1,9 @@
+use std::cell::RefCell;
+
 use crate::error::RxError;
 use crate::subscription::{SubjectSubscription, TrackedSubjectObservers};
 use crate::subscriber::{Observer, Subscriber};
 use crate::observable::ObservableLike;
-use std::cell::RefCell;
 
 pub struct Subject<T> {
     observers: TrackedSubjectObservers<T>
