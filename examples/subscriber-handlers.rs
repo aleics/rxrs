@@ -11,9 +11,9 @@ fn main() {
         subscriber.next(&String::from("This should not be printed."));
     };
 
-    Observable::new(subscriber_fn).subscribe(
+    Observable::new(subscriber_fn).subscribe(Subscriber::new(
         |value| println!("{}", value),
         |error| println!("{}", error),
         || println!("completed")
-    );
+    ));
 }

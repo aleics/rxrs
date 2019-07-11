@@ -4,14 +4,14 @@ use rxrs::subscription::Subscription;
 use rxrs::observable::ObservableLike;
 
 fn main() {
-    let subject = Subject::<i32>::new();
-    let mut first = subject.subscribe(
+    let subject = Subject::new();
+    let mut first = subject.subscribe_fn(
         |value| println!("first {}", value),
         |e| println!("first {}", e),
         || println!("complete")
     );
 
-    let mut second = subject.subscribe(
+    let mut second = subject.subscribe_fn(
         |value| println!("second {}", value),
         |e| println!("second {}", e),
         || println!("complete")

@@ -1,4 +1,4 @@
-use rxrs::observable::{interval, ObservableLike};
+use rxrs::observable::interval;
 use std::thread;
 use std::time::Duration;
 use rxrs::subscription::Subscription;
@@ -6,13 +6,13 @@ use rxrs::subscription::Subscription;
 fn main() {
     let observable = interval(1);
 
-    let mut first_subscription = observable.subscribe(
+    let mut first_subscription = observable.subscribe_fn(
         |value| println!("first: {}", value),
         |error| println!("{}", error),
         || println!("completed")
     );
 
-    let mut second_subscription = observable.subscribe(
+    let mut second_subscription = observable.subscribe_fn(
         |value| println!("second: {}", value),
         |error| println!("{}", error),
         || println!("completed")

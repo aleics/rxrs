@@ -5,25 +5,22 @@ use crate::subscription::{SubjectSubscription, TrackedSubjectObservers};
 use crate::subscriber::{Observer, Subscriber};
 use crate::observable::ObservableLike;
 
-pub struct Subject<T> {
-    observers: TrackedSubjectObservers<T>
+#[derive(Default)]
+pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+    observers: TrackedSubjectObservers<O>
 }
 
-impl<'b, T> Subject<T> {
-    pub fn new() -> Subject<T> {
+impl<'a, T> Subject<T, Subscriber<T>> {
+    pub fn new() -> Subject<T, Subscriber<T>> {
         Subject { observers: RefCell::new(Vec::new()) }
     }
-}
 
-impl<'a, T: 'static> ObservableLike<'a, T> for Subject<T> {
-    type Subscription = SubjectSubscription<'a, T>;
-
-    fn subscribe<F, E, C>(
+    pub fn subscribe_fn<F, E, C>(
         &'a self,
         next_handler: F,
         error_handler:  E,
         complete_handler: C
-    ) -> SubjectSubscription<'a, T>
+    ) -> SubjectSubscription<'a, Subscriber<T>>
         where F: Fn(&T) + 'static + Send,
               E: Fn(&RxError) + 'static + Send,
               C: Fn() + 'static + Send {
@@ -38,7 +35,19 @@ impl<'a, T: 'static> ObservableLike<'a, T> for Subject<T> {
     }
 }
 
-impl<T> Observer for Subject<T> {
+impl<'a, T: 'static, O: 'a> ObservableLike<'a, O> for Subject<T, O>
+    where O: Observer<Value=T, Error=RxError> {
+    type Subscription = SubjectSubscription<'a, O>;
+
+    fn subscribe(
+        &'a self,
+        _observer: O
+    ) -> SubjectSubscription<'a, O> {
+        unimplemented!()
+    }
+}
+
+impl<T, O> Observer for Subject<T, O> where O: Observer<Value=T, Error=RxError> {
     type Value = T;
     type Error = RxError;
 
