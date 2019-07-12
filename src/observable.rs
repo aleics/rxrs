@@ -27,13 +27,15 @@ pub struct Observable<T, O> where O: Observer<Value=T, Error=RxError> {
     observer_fn: ObservableConstructor<O>
 }
 
-impl<T: 'static> Observable<T, Subscriber<T>> {
+impl<T: 'static, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
     /// Creates a new `Observable` defined by a subscriber function.
-    pub fn new<F>(func: F) -> Observable<T, Subscriber<T>>
-        where F: Fn(Subscriber<T>, Receiver<()>) + 'static {
+    pub fn new<F>(func: F) -> Observable<T, O>
+        where F: Fn(O, Receiver<()>) + 'static {
         Observable { observer_fn: ObservableConstructor::new(func) }
     }
+}
 
+impl<T: 'static> Observable<T, Subscriber<T>> {
     /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
     /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
     pub fn subscribe_fn<N, E, C>(&self, next: N, error:  E, complete: C) -> ObservableSubscription
@@ -84,8 +86,8 @@ impl<'a, T: 'static, O> ObservableLike<'a, O> for Observable<T, O>
 ///   || println!("completed")
 /// );
 /// ```
-pub fn of<T>(values: &'static [T]) -> Observable<T, Subscriber<T>> {
-    let observer = move |mut subscriber: Subscriber<T>, _| {
+pub fn of<T, O: Observer<Value=T, Error=RxError>>(values: &'static [T]) -> Observable<T, O> {
+    let observer = move |mut subscriber: O, _| {
         for value in values {
             subscriber.next(value);
         }
@@ -116,8 +118,9 @@ pub fn of<T>(values: &'static [T]) -> Observable<T, Subscriber<T>> {
 ///
 /// j.join().unwrap();
 /// ```
-pub fn interval(interval_time: u64) -> Observable<u64, Subscriber<u64>> {
-    let observer = move |subscriber: Subscriber<u64>, unsubscriber: Receiver<()>| {
+pub fn interval<O>(interval_time: u64) -> Observable<u64, O>
+    where O: Observer<Value=u64, Error=RxError> + Send + 'static {
+    let observer = move |subscriber: O, unsubscriber: Receiver<()>| {
         spawn(move || {
             let mut count = 0;
 
