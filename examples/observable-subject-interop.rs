@@ -1,8 +1,10 @@
-use rxrs::subject::Subject;
-use rxrs::observable::{of, ObservableLike, interval};
-use rxrs::subscription::Subscription;
 use std::thread::sleep;
 use std::time::Duration;
+
+use rxrs::subject::Subject;
+use rxrs::observable::ObservableLike;
+use rxrs::subscription::Subscription;
+use rxrs::operators::{of, interval};
 
 fn main() {
     let first_subject = Subject::new();

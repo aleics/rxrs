@@ -1,5 +1,3 @@
-use std::thread::{spawn, sleep};
-use std::time::Duration;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
 use crate::subscription::{ObservableSubscription, Subscription};
@@ -74,67 +72,4 @@ impl<'a, T: 'static, O> ObservableLike<'a, O> for Observable<T, O>
         // a channel sender is sent to the subscription so that it can be unsubscribed
         ObservableSubscription::new(tx)
     }
-}
-
-/// `of` creates a finite number of observables with a defined value.
-/// ```rust
-/// use rxrs::observable::{of, ObservableLike};
-///
-///  of(&[1, 2, 3]).subscribe_fn(
-///   |value| println!("{}", value),
-///   |error| println!("{}", error),
-///   || println!("completed")
-/// );
-/// ```
-pub fn of<T, O: Observer<Value=T, Error=RxError>>(values: &'static [T]) -> Observable<T, O> {
-    let observer = move |mut subscriber: O, _| {
-        for value in values {
-            subscriber.next(value);
-        }
-        subscriber.complete();
-    };
-    Observable::new(Box::new(observer))
-}
-
-/// `interval` creates an infinite observable that emits sequential numbers every specified
-/// interval of time.
-/// ```rust
-/// use rxrs::observable::{interval, ObservableLike};
-/// use std::thread;
-/// use std::time::Duration;
-/// use rxrs::subscription::Subscription;
-///
-///
-/// let mut subscription = interval(1).subscribe_fn(
-///   |value| println!("{}", value),
-///   |error| println!("{}", error),
-///   || println!("completed")
-/// );
-///
-/// let j = thread::spawn(move || {
-///   thread::sleep(Duration::from_millis(5));
-///   subscription.unsubscribe();
-/// });
-///
-/// j.join().unwrap();
-/// ```
-pub fn interval<O>(interval_time: u64) -> Observable<u64, O>
-    where O: Observer<Value=u64, Error=RxError> + Send + 'static {
-    let observer = move |subscriber: O, unsubscriber: Receiver<()>| {
-        spawn(move || {
-            let mut count = 0;
-
-            loop {
-                sleep(Duration::from_millis(interval_time));
-                subscriber.next(&count);
-
-                count += 1;
-
-                if unsubscriber.try_recv().is_ok() {
-                    break;
-                }
-            }
-        });
-    };
-    Observable::new(Box::new(observer))
 }

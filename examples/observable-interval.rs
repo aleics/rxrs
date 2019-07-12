@@ -1,7 +1,8 @@
-use rxrs::observable::interval;
 use std::thread;
 use std::time::Duration;
+
 use rxrs::subscription::Subscription;
+use rxrs::operators::interval;
 
 fn main() {
     let observable = interval(1);
