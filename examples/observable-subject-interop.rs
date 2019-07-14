@@ -8,7 +8,7 @@ use rxrs::operators::{of, interval};
 
 fn main() {
     let first_subject = Subject::new();
-    first_subject.subscribe_fn(
+    first_subject.subscribe_all(
         |value| println!("from first_subject observer: {}", value),
         |e| println!("error: {}", e),
         || println!("complete")
@@ -18,7 +18,7 @@ fn main() {
     of_observable.subscribe(first_subject);
 
     let second_subject = Subject::new();
-    second_subject.subscribe_fn(
+    second_subject.subscribe_all(
         |value| println!("from second_subject observer: {}", value),
         |e| println!("error: {}", e),
         || println!("complete")

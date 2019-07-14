@@ -15,7 +15,7 @@ impl<'a, T> Subject<T, Subscriber<T>> {
         Subject { observers: RefCell::new(Vec::new()) }
     }
 
-    pub fn subscribe_fn<F, E, C>(
+    pub fn subscribe_all<F, E, C>(
         &'a self,
         next_handler: F,
         error_handler:  E,
