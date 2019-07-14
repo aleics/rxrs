@@ -1,41 +1,23 @@
-use crate::observable::{ObservableLike, Observable};
-use crate::subscription::{ObservableSubscription, Subscription};
-use crate::subscriber::{Subscriber, Observer};
+use crate::subscriber::Observer;
 use crate::error::RxError;
 
-trait Operator<'a, T, U, O, P, S> where O: ObservableLike<'a, S>, P: Subscription, S: Observer<Value=T, Error=RxError> {
-    fn call(&self, source: O, subscriber: Subscriber<U>) -> P;
-}
+pub type MapPredicate<T, U> = fn(&T) -> U;
 
-type MapPredicate<T, U> = fn(&T) -> U;
-
-struct ObservableMapOperator<T, U> {
-    observable: Observable<T, ObservableMapSubscriber<T, U>>,
+pub struct MapSubscriber<T, U, D> where D: Observer<Value=U, Error=RxError> {
+    destination: D,
     predicate: MapPredicate<T, U>
 }
 
-impl<'a, T: 'static, U: 'static>
-    Operator<'a, T, U, Observable<T, ObservableMapSubscriber<T, U>>, ObservableSubscription, ObservableMapSubscriber<T, U>>
-    for ObservableMapOperator<T, U> {
-    fn call(&self, source: Observable<T, ObservableMapSubscriber<T, U>>, destination: Subscriber<U>) -> ObservableSubscription {
-        let map_subscriber = ObservableMapSubscriber::<T, U>::new(destination, self.predicate);
-        source.subscribe(map_subscriber)
+impl<T, U, D> MapSubscriber<T, U, D> where D: Observer<Value=U, Error=RxError> {
+    pub fn new(destination: D, predicate: MapPredicate<T, U>)
+               -> MapSubscriber<T, U, D> {
+        MapSubscriber { destination, predicate }
     }
 }
 
-struct ObservableMapSubscriber<T, U> {
-    destination: Subscriber<U>,
-    predicate: MapPredicate<T, U>
-}
+impl<T, U, D> Observer for MapSubscriber<T, U, D>
+    where D: Observer<Value=U, Error=RxError> {
 
-impl<T, U> ObservableMapSubscriber<T, U> {
-    pub fn new(destination: Subscriber<U>, predicate: MapPredicate<T, U>)
-        -> ObservableMapSubscriber<T, U> {
-        ObservableMapSubscriber { destination, predicate }
-    }
-}
-
-impl<T, U> Observer for ObservableMapSubscriber<T, U> {
     type Value = T;
     type Error = RxError;
 
@@ -45,10 +27,10 @@ impl<T, U> Observer for ObservableMapSubscriber<T, U> {
     }
 
     fn error(&self, e: &Self::Error) {
-        unimplemented!()
+        self.destination.error(e);
     }
 
     fn complete(&mut self) {
-        unimplemented!()
+        self.destination.complete();
     }
 }

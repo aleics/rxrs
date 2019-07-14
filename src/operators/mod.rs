@@ -2,10 +2,10 @@ use std::thread::{spawn, sleep};
 use std::time::Duration;
 use std::sync::mpsc::Receiver;
 
-use crate::observable::Observable;
+use crate::observable::{Observable, ObservableLike};
 use crate::subscriber::Observer;
 use crate::error::RxError;
-use crate::operators::map::MapPredicate;
+use crate::operators::map::{MapPredicate, MapSubscriber};
 
 mod map;
 
@@ -74,3 +74,15 @@ pub fn interval<O>(interval_time: u64) -> Observable<u64, O>
     Observable::new(Box::new(observer))
 }
 
+
+pub fn map<T: 'static, U: 'static, D: 'static>(predicate: MapPredicate<T, U>)
+    -> impl FnOnce(Observable<T, MapSubscriber<T, U, D>>) -> Observable<U, D>
+        where D: Observer<Value=U, Error=RxError> {
+
+        move |upstream| {
+            Observable::new( move |destination: D, _| {
+                let map_subscriber = MapSubscriber::new(destination, predicate);
+                upstream.subscribe(map_subscriber);
+            })
+        }
+}
