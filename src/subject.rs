@@ -51,7 +51,7 @@ impl<'a, T> Subject<T, Subscriber<T>> {
     }
 }
 
-impl<'a, T: 'static, O: 'a> ObservableLike<'a, O> for Subject<T, O>
+impl<'a, T, O: 'a> ObservableLike<'a, O> for Subject<T, O>
     where O: Observer<Value=T, Error=RxError> {
     type Subscription = SubjectSubscription<'a, O>;
 

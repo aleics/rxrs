@@ -25,7 +25,7 @@ pub struct Observable<T, O> where O: Observer<Value=T, Error=RxError> {
     observer_fn: ObservableConstructor<O>
 }
 
-impl<T: 'static, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
+impl<T, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
     /// Creates a new `Observable` defined by a subscriber function.
     pub fn new<F>(func: F) -> Observable<T, O>
         where F: Fn(O, Receiver<()>) + 'static {
@@ -39,7 +39,7 @@ impl<T: 'static, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
     }
 }
 
-impl<T: 'static> Observable<T, Subscriber<T>> {
+impl<T> Observable<T, Subscriber<T>> {
 
     pub fn subscribe_next<N>(&self, next: N) -> ObservableSubscription
         where N: Fn(&T) + 'static + Send {
@@ -75,7 +75,7 @@ pub trait ObservableLike<'a, O> {
     fn subscribe(&'a self, observer: O) -> Self::Subscription;
 }
 
-impl<'a, T: 'static, O> ObservableLike<'a, O> for Observable<T, O>
+impl<'a, T, O> ObservableLike<'a, O> for Observable<T, O>
     where O: Observer<Value=T, Error=RxError> {
 
     type Subscription = ObservableSubscription;
