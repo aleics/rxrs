@@ -77,12 +77,12 @@ pub fn interval<O>(interval_time: u64) -> Observable<u64, O>
 
 pub fn map<T: 'static, U: 'static, D: 'static>(predicate: MapPredicate<T, U>)
     -> impl FnOnce(Observable<T, MapSubscriber<T, U, D>>) -> Observable<U, D>
-        where D: Observer<Value=U, Error=RxError> {
+    where D: Observer<Value=U, Error=RxError> {
 
-        move |upstream| {
-            Observable::new( move |destination: D, _| {
-                let map_subscriber = MapSubscriber::new(destination, predicate);
-                upstream.subscribe(map_subscriber);
-            })
-        }
+    move |upstream| {
+        Observable::new( move |destination: D, _| {
+            let map_subscriber = MapSubscriber::new(destination, predicate);
+            upstream.subscribe(map_subscriber);
+        })
+    }
 }

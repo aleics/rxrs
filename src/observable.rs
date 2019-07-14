@@ -31,6 +31,12 @@ impl<T: 'static, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
         where F: Fn(O, Receiver<()>) + 'static {
         Observable { observer_fn: ObservableConstructor::new(func) }
     }
+
+    pub fn pipe<U, D, F>(self, func: F) -> Observable<U, D>
+        where F: FnOnce(Observable<T, O>) -> Observable<U, D>,
+              D: Observer<Value=U, Error=RxError> {
+        (func)(self)
+    }
 }
 
 impl<T: 'static> Observable<T, Subscriber<T>> {

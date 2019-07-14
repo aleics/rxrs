@@ -1,7 +1,6 @@
 use rxrs::subject::Subject;
 use rxrs::subscriber::Observer;
 use rxrs::subscription::Subscription;
-use rxrs::observable::ObservableLike;
 
 fn main() {
     let subject = Subject::new();
