@@ -11,8 +11,24 @@ pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 }
 
 impl<'a, T> Subject<T, Subscriber<T>> {
+
     pub fn new() -> Subject<T, Subscriber<T>> {
         Subject { observers: RefCell::new(Vec::new()) }
+    }
+
+    pub fn subscribe_next<N>(&'a self, next: N) -> SubjectSubscription<'a, Subscriber<T>>
+        where N: Fn(&T) + 'static + Send {
+        self.subscribe_all(next, |_| {}, || {})
+    }
+
+    pub fn subscribe_error<E>(&'a self, error: E) -> SubjectSubscription<'a, Subscriber<T>>
+        where E: Fn(&RxError) + 'static + Send {
+        self.subscribe_all(|_| {}, error, || {})
+    }
+
+    pub fn subscribe_complete<C>(&'a self, complete: C) -> SubjectSubscription<'a, Subscriber<T>>
+        where C: Fn() + 'static + Send {
+        self.subscribe_all(|_| {}, |_| {}, complete)
     }
 
     pub fn subscribe_all<F, E, C>(

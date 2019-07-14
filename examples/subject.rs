@@ -4,16 +4,12 @@ use rxrs::subscription::Subscription;
 
 fn main() {
     let subject = Subject::new();
-    let mut first = subject.subscribe_all(
-        |value| println!("first {}", value),
-        |e| println!("first {}", e),
-        || println!("complete")
+    let mut first = subject.subscribe_next(
+        |value| println!("first {}", value)
     );
 
-    let mut second = subject.subscribe_all(
-        |value| println!("second {}", value),
-        |e| println!("second {}", e),
-        || println!("complete")
+    let mut second = subject.subscribe_next(
+        |value| println!("second {}", value)
     );
 
     subject.next(&0);
