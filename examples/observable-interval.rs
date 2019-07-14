@@ -7,16 +7,12 @@ use rxrs::operators::interval;
 fn main() {
     let observable = interval(1);
 
-    let mut first_subscription = observable.subscribe_all(
-        |value| println!("first: {}", value),
-        |error| println!("{}", error),
-        || println!("completed")
+    let mut first_subscription = observable.subscribe_next(
+        |value| println!("first: {}", value)
     );
 
-    let mut second_subscription = observable.subscribe_all(
-        |value| println!("second: {}", value),
-        |error| println!("{}", error),
-        || println!("completed")
+    let mut second_subscription = observable.subscribe_next(
+        |value| println!("second: {}", value)
     );
 
     let j = thread::spawn(move || {

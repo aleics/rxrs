@@ -40,6 +40,22 @@ impl<T: 'static, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
 }
 
 impl<T: 'static> Observable<T, Subscriber<T>> {
+
+    pub fn subscribe_next<N>(&self, next: N) -> ObservableSubscription
+        where N: Fn(&T) + 'static + Send {
+        self.subscribe_all(next, |_| {}, || {})
+    }
+
+    pub fn subscribe_error<E>(&self, error: E) -> ObservableSubscription
+        where E: Fn(&RxError) + 'static + Send {
+        self.subscribe_all(|_| {}, error, || {})
+    }
+
+    pub fn subscribe_complete<C>(&self, complete: C) -> ObservableSubscription
+        where C: Fn() + 'static + Send {
+        self.subscribe_all(|_| {}, |_| {}, complete)
+    }
+
     pub fn subscribe_all<N, E, C>(&self, next: N, error:  E, complete: C) -> ObservableSubscription
         where N: Fn(&T) + 'static + Send,
               E: Fn(&RxError) + 'static + Send,
