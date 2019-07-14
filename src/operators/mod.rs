@@ -6,8 +6,10 @@ use crate::observable::{Observable, ObservableLike};
 use crate::subscriber::Observer;
 use crate::error::RxError;
 use crate::operators::map::{MapPredicate, MapSubscriber};
+use crate::operators::filter::{FilterPredicate, FilterSubscriber};
 
 mod map;
+mod filter;
 
 /// `of` creates a finite number of observables with a defined value.
 /// ```rust
@@ -82,6 +84,18 @@ pub fn map<T: 'static, U: 'static, D: 'static>(predicate: MapPredicate<T, U>)
     move |upstream| {
         Observable::new( move |destination: D, _| {
             let map_subscriber = MapSubscriber::new(destination, predicate);
+            upstream.subscribe(map_subscriber);
+        })
+    }
+}
+
+pub fn filter<T: 'static, D: 'static>(predicate: FilterPredicate<T>)
+    -> impl FnOnce(Observable<T, FilterSubscriber<T, D>>) -> Observable<T, D>
+    where D: Observer<Value=T, Error=RxError> {
+
+    move |upstream| {
+        Observable::new( move |destination: D, _| {
+            let map_subscriber = FilterSubscriber::new(destination, predicate);
             upstream.subscribe(map_subscriber);
         })
     }

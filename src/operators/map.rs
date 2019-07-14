@@ -9,8 +9,10 @@ pub struct MapSubscriber<T, U, D> where D: Observer<Value=U, Error=RxError> {
 }
 
 impl<T, U, D> MapSubscriber<T, U, D> where D: Observer<Value=U, Error=RxError> {
-    pub fn new(destination: D, predicate: MapPredicate<T, U>)
-               -> MapSubscriber<T, U, D> {
+    pub fn new(
+        destination: D,
+        predicate: MapPredicate<T, U>
+    ) -> MapSubscriber<T, U, D> {
         MapSubscriber { destination, predicate }
     }
 }
