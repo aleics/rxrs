@@ -40,9 +40,7 @@ impl<T: 'static, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
 }
 
 impl<T: 'static> Observable<T, Subscriber<T>> {
-    /// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
-    /// provided when creating the `Observable` instance is called, and a `Subscription` is created.
-    pub fn subscribe_fn<N, E, C>(&self, next: N, error:  E, complete: C) -> ObservableSubscription
+    pub fn subscribe_all<N, E, C>(&self, next: N, error:  E, complete: C) -> ObservableSubscription
         where N: Fn(&T) + 'static + Send,
               E: Fn(&RxError) + 'static + Send,
               C: Fn() + 'static + Send {

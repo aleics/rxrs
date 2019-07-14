@@ -14,7 +14,7 @@ mod map;
 /// use rxrs::observable::ObservableLike;
 /// use rxrs::operators::of;
 ///
-///  of(&[1, 2, 3]).subscribe_fn(
+///  of(&[1, 2, 3]).subscribe_all(
 ///   |value| println!("{}", value),
 ///   |error| println!("{}", error),
 ///   || println!("completed")
@@ -40,7 +40,7 @@ pub fn of<T, O: Observer<Value=T, Error=RxError>>(values: &'static [T]) -> Obser
 /// use rxrs::operators::interval;
 ///
 ///
-/// let mut subscription = interval(1).subscribe_fn(
+/// let mut subscription = interval(1).subscribe_all(
 ///   |value| println!("{}", value),
 ///   |error| println!("{}", error),
 ///   || println!("completed")
