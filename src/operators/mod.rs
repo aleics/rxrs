@@ -22,7 +22,7 @@ mod filter;
 ///   || println!("completed")
 /// );
 /// ```
-pub fn of<T, O: Observer<Value=T, Error=RxError>>(values: &'static [T]) -> Observable<T, O> {
+pub fn of<T, O: Observer<Value=T, Error=RxError>>(values: &[T]) -> Observable<T, O> {
     let observer = move |mut subscriber: O, _| {
         for value in values {
             subscriber.next(value);
@@ -55,7 +55,7 @@ pub fn of<T, O: Observer<Value=T, Error=RxError>>(values: &'static [T]) -> Obser
 ///
 /// j.join().unwrap();
 /// ```
-pub fn interval<O>(interval_time: u64) -> Observable<u64, O>
+pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
     where O: Observer<Value=u64, Error=RxError> + Send + 'static {
     let observer = move |subscriber: O, unsubscriber: Receiver<()>| {
         spawn(move || {

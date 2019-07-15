@@ -4,13 +4,13 @@ use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer};
 
-struct ObservableConstructor<O: Observer> {
-    func: Box<dyn Fn(O, Receiver<()>)>
+struct ObservableConstructor<'a, O: Observer> {
+    func: Box<dyn Fn(O, Receiver<()>) + 'a>
 }
 
-impl<'a, O: Observer> ObservableConstructor<O> {
-    pub fn new<F>(func: F) -> ObservableConstructor<O>
-        where F: Fn(O, Receiver<()>) + 'static {
+impl<'a, O: Observer> ObservableConstructor<'a, O> {
+    pub fn new<F>(func: F) -> ObservableConstructor<'a, O>
+        where F: Fn(O, Receiver<()>) + 'a {
         ObservableConstructor { func: Box::new(func) }
     }
 
@@ -21,25 +21,25 @@ impl<'a, O: Observer> ObservableConstructor<O> {
 
 /// `Observable` is a representation of a collection of values over a period of time. Observables
 /// define event streams that can be subscribed to.
-pub struct Observable<T, O> where O: Observer<Value=T, Error=RxError> {
-    observer_fn: ObservableConstructor<O>
+pub struct Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
+    observer_fn: ObservableConstructor<'a, O>
 }
 
-impl<T, O> Observable<T, O> where O: Observer<Value=T, Error=RxError> {
+impl<'a, T, O> Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
     /// Creates a new `Observable` defined by a subscriber function.
-    pub fn new<F>(func: F) -> Observable<T, O>
-        where F: Fn(O, Receiver<()>) + 'static {
+    pub fn new<F>(func: F) -> Observable<'a, T, O>
+        where F: Fn(O, Receiver<()>) + 'a {
         Observable { observer_fn: ObservableConstructor::new(func) }
     }
 
-    pub fn pipe<U, D, F>(self, func: F) -> Observable<U, D>
+    pub fn pipe<U, D, F>(self, func: F) -> Observable<'a, U, D>
         where F: FnOnce(Observable<T, O>) -> Observable<U, D>,
               D: Observer<Value=U, Error=RxError> {
         (func)(self)
     }
 }
 
-impl<T> Observable<T, Subscriber<T>> {
+impl<'a, T> Observable<'a, T, Subscriber<T>> {
 
     pub fn subscribe_next<N>(&self, next: N) -> ObservableSubscription
         where N: Fn(&T) + 'static + Send {
@@ -75,7 +75,7 @@ pub trait ObservableLike<'a, O> {
     fn subscribe(&'a self, observer: O) -> Self::Subscription;
 }
 
-impl<'a, T, O> ObservableLike<'a, O> for Observable<T, O>
+impl<'a, T, O> ObservableLike<'a, O> for Observable<'a, T, O>
     where O: Observer<Value=T, Error=RxError> {
 
     type Subscription = ObservableSubscription;
