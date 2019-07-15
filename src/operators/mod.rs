@@ -22,7 +22,8 @@ mod filter;
 ///   || println!("completed")
 /// );
 /// ```
-pub fn of<T, O: Observer<Value=T, Error=RxError>>(values: &[T]) -> Observable<T, O> {
+pub fn of<T, O>(values: &[T]) -> Observable<T, O>
+    where O: Observer<Value=T, Error=RxError> {
     let observer = move |mut subscriber: O, _| {
         for value in values {
             subscriber.next(value);
