@@ -13,7 +13,7 @@ pub struct Subscriber<T> {
     next_fn: Box<dyn Fn(&T) + Send>,
     error_fn: Box<dyn Fn(&RxError) + Send>,
     complete_fn: Box<dyn Fn() + Send>,
-    stopped: bool
+    pub stopped: bool
 }
 
 impl<T> Subscriber<T> {
@@ -49,55 +49,5 @@ impl<T> Observer for Subscriber<T> {
             self.stopped = true;
             (self.complete_fn)();
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Subscriber, Observer};
-    use crate::error::RxError;
-
-    #[test]
-    fn new() {
-        let subscriber = Subscriber::<u32>::new(
-            |value| println!("{}", value),
-            |err| println!("{}", err),
-            || println!("complete")
-        );
-        assert_eq!(subscriber.stopped, false);
-    }
-
-    #[test]
-    fn next() {
-        let subscriber = Subscriber::<u32>::new(
-            |value| assert_eq!(&1, value),
-            |_err| assert_eq!(true, false),
-            || assert_eq!(true, false)
-        );
-
-        subscriber.next(&1);
-    }
-
-    #[test]
-    fn error() {
-        let subscriber = Subscriber::<u32>::new(
-            |_value| assert_eq!(true, false),
-            |_err| assert_eq!(true, true),
-            || assert_eq!(true, false)
-        );
-
-        subscriber.error(&RxError::CustomError("some error".to_string()));
-    }
-
-    #[test]
-    fn complete() {
-        let mut subscriber = Subscriber::<u32>::new(
-            |_value| assert_eq!(true, false),
-            |_err| assert_eq!(true, false),
-            || assert_eq!(true, true)
-        );
-
-        subscriber.complete();
-        assert_eq!(subscriber.stopped, true);
     }
 }
