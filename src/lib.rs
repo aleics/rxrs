@@ -6,3 +6,6 @@ pub mod operators;
 pub mod subject;
 pub mod subscriber;
 pub mod subscription;
+
+#[cfg(test)]
+mod utils;
