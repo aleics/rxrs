@@ -8,4 +8,4 @@ pub mod subscriber;
 pub mod subscription;
 
 #[cfg(test)]
-mod utils;
+mod tests;
