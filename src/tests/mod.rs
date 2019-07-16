@@ -1,4 +1,5 @@
 mod filter;
+mod interval;
 mod map;
 mod of;
 mod subscriber;

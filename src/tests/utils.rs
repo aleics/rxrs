@@ -31,5 +31,5 @@ pub fn is_completed<T>(observable: &Observable<T, Subscriber<T>>) -> bool {
     let (tx, rx) = channel();
     observable.subscribe_complete(move || tx.send(true).unwrap());
 
-    rx.recv().is_ok()
+    rx.try_recv().is_ok()
 }
