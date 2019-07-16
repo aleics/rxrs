@@ -1,10 +1,9 @@
 use crate::observable::Observable;
 use crate::subscriber::Subscriber;
-use std::fmt::Debug;
 use std::sync::mpsc::channel;
 
 pub fn values_sent<T>(observable: &Observable<T, Subscriber<T>>, expected: &[T]) -> bool
-    where T: 'static + Clone + Debug + PartialEq + Sync + Send {
+    where T: 'static + Clone + PartialEq + Sync + Send {
     let (tx, rx) = channel();
 
     let mut result = Vec::new();
