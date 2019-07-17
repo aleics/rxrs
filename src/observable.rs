@@ -33,12 +33,6 @@ impl<'a, T, O> Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
         where F: Fn(O, Receiver<()>) + 'a {
         Observable { observer_fn: ObservableConstructor::new(func) }
     }
-
-    pub fn pipe<U, D, F>(self, func: F) -> Observable<'a, U, D>
-        where F: FnOnce(Observable<T, O>) -> Observable<U, D>,
-              D: Observer<Value=U, Error=RxError> {
-        (func)(self)
-    }
 }
 
 impl<'a, T: 'a, U: 'a, D> Observable<'a, T, MapSubscriber<T, U, D>>
