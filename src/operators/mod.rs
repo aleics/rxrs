@@ -2,13 +2,12 @@ use std::thread::{spawn, sleep};
 use std::time::Duration;
 use std::sync::mpsc::Receiver;
 
-use crate::observable::{Observable, ObservableLike};
+use crate::observable::Observable;
 use crate::subscriber::Observer;
 use crate::error::RxError;
-use crate::operators::filter::{FilterPredicate, FilterSubscriber};
 
 pub(crate) mod map;
-mod filter;
+pub(crate) mod filter;
 
 /// `of` creates a finite number of observables with a defined value.
 /// ```rust
@@ -74,16 +73,4 @@ pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
         });
     };
     Observable::new(Box::new(observer))
-}
-
-pub fn filter<T: 'static, D: 'static>(predicate: FilterPredicate<T>)
-    -> impl FnOnce(Observable<T, FilterSubscriber<T, D>>) -> Observable<T, D>
-    where D: Observer<Value=T, Error=RxError> {
-
-    move |upstream| {
-        Observable::new( move |destination: D, _| {
-            let map_subscriber = FilterSubscriber::new(destination, predicate);
-            upstream.subscribe(map_subscriber);
-        })
-    }
 }

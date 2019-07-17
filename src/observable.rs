@@ -4,6 +4,7 @@ use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer};
 use crate::operators::map::{MapPredicate, MapSubscriber};
+use crate::operators::filter::{FilterSubscriber, FilterPredicate};
 
 struct ObservableConstructor<'a, O: Observer> {
     func: Box<dyn Fn(O, Receiver<()>) + 'a>
@@ -47,6 +48,17 @@ impl<'a, T: 'a, U: 'a, D> Observable<'a, T, MapSubscriber<T, U, D>>
         where D: Observer<Value=U, Error=RxError> {
         Observable::new( move |destination: D, _| {
             let map_subscriber = MapSubscriber::new(destination, predicate);
+            self.subscribe(map_subscriber);
+        })
+    }
+}
+
+impl<'a, T: 'a, O: 'a> Observable<'a, T, FilterSubscriber<T, O>>
+    where O: Observer<Value=T, Error=RxError> {
+
+    pub fn filter(self, predicate: FilterPredicate<T>) -> Observable<'a, T, O> {
+        Observable::new( move |destination: O, _| {
+            let map_subscriber = FilterSubscriber::new(destination, predicate);
             self.subscribe(map_subscriber);
         })
     }
