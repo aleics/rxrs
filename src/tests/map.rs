@@ -83,3 +83,15 @@ fn successive_maps() {
     assert!(values_sent(&result, &data));
     assert!(is_completed(&result));
 }
+
+#[test]
+fn successive_operators() {
+    let data = [1, 2, 3];
+
+    let result = of(&data)
+        .map(|item: &i32| item * 2)
+        .filter(|item: &i32| item > &2);
+
+    assert!(values_sent(&result, &[4, 6]));
+    assert!(is_completed(&result));
+}
