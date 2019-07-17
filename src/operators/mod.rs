@@ -5,10 +5,9 @@ use std::sync::mpsc::Receiver;
 use crate::observable::{Observable, ObservableLike};
 use crate::subscriber::Observer;
 use crate::error::RxError;
-use crate::operators::map::{MapPredicate, MapSubscriber};
 use crate::operators::filter::{FilterPredicate, FilterSubscriber};
 
-mod map;
+pub(crate) mod map;
 mod filter;
 
 /// `of` creates a finite number of observables with a defined value.
@@ -75,19 +74,6 @@ pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
         });
     };
     Observable::new(Box::new(observer))
-}
-
-
-pub fn map<T: 'static, U: 'static, D: 'static>(predicate: MapPredicate<T, U>)
-    -> impl FnOnce(Observable<T, MapSubscriber<T, U, D>>) -> Observable<U, D>
-    where D: Observer<Value=U, Error=RxError> {
-
-    move |upstream| {
-        Observable::new( move |destination: D, _| {
-            let map_subscriber = MapSubscriber::new(destination, predicate);
-            upstream.subscribe(map_subscriber);
-        })
-    }
 }
 
 pub fn filter<T: 'static, D: 'static>(predicate: FilterPredicate<T>)

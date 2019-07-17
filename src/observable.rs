@@ -3,6 +3,7 @@ use std::sync::mpsc::{channel, Sender, Receiver};
 use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer};
+use crate::operators::map::{MapPredicate, MapSubscriber};
 
 struct ObservableConstructor<'a, O: Observer> {
     func: Box<dyn Fn(O, Receiver<()>) + 'a>
@@ -36,6 +37,18 @@ impl<'a, T, O> Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
         where F: FnOnce(Observable<T, O>) -> Observable<U, D>,
               D: Observer<Value=U, Error=RxError> {
         (func)(self)
+    }
+}
+
+impl<'a, T: 'a, U: 'a, D> Observable<'a, T, MapSubscriber<T, U, D>>
+    where D: Observer<Value=U, Error=RxError> + 'a {
+
+    pub fn map(self, predicate: MapPredicate<T, U>) -> Observable<'a, U, D>
+        where D: Observer<Value=U, Error=RxError> {
+        Observable::new( move |destination: D, _| {
+            let map_subscriber = MapSubscriber::new(destination, predicate);
+            self.subscribe(map_subscriber);
+        })
     }
 }
 
