@@ -5,7 +5,7 @@ Reactive Extensions Library for Rust.
 
 ## Observable
 ### Create
-For creating new Observable instances, the library provides a number of constructors:
+For creating new Observable instances, the library provides a number of creation operators:
  * [`of`](https://github.com/aleics/rxrs/blob/372a3111dba493777d3b5847503395025aab1ea9/src/observable.rs#L46): creates a
  finite number of observables with a defined value:
  
