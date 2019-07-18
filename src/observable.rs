@@ -5,11 +5,11 @@ use crate::operators::map::{MapPredicate, MapSubscriber};
 use crate::operators::filter::{FilterSubscriber, FilterPredicate};
 
 pub struct Unsubscriber {
-	func: Box<dyn FnMut()>
+	func: Box<dyn FnMut() + Send>
 }
 
 impl Unsubscriber {
-	pub fn new<F: 'static>(func: F) -> Unsubscriber where F: FnMut() {
+	pub fn new<F: 'static>(func: F) -> Unsubscriber where F: FnMut() + Send {
 		Unsubscriber { func: Box::new(func) }
 	}
 
