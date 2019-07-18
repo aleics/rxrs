@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use crate::error::RxError;
 use crate::subscription::{SubjectSubscription, TrackedSubjectObservers};
 use crate::subscriber::{Observer, Subscriber};
-use crate::observable::ObservableLike;
+use crate::observable::{ObservableLike, Observable};
 
 #[derive(Default)]
 pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
@@ -13,6 +13,12 @@ pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 impl<'a, T, O> Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 	pub fn new() -> Subject<T, O> {
 		Subject { observers: RefCell::new(Vec::new()) }
+	}
+
+	pub fn as_observable(&self) -> Observable<T, O> {
+		Observable::new(move |destination, _| {
+			self.subscribe(destination);
+		})
 	}
 }
 
@@ -36,20 +42,18 @@ impl<'a, T> Subject<T, Subscriber<T>> {
 	pub fn subscribe_all<F, E, C>(
 		&'a self,
 		next_handler: F,
-		error_handler:  E,
-		complete_handler: C
+		error_handler: E,
+		complete_handler: C,
 	) -> SubjectSubscription<'a, Subscriber<T>>
 		where F: Fn(&T) + 'static + Send,
 					E: Fn(&RxError) + 'static + Send,
 					C: Fn() + 'static + Send {
 		// generate a subscriber from the input events
 		let subscriber = Subscriber::<T>::new(
-			next_handler, error_handler, complete_handler
+			next_handler, error_handler, complete_handler,
 		);
 
-		self.observers.borrow_mut().push(Some(subscriber));
-
-		SubjectSubscription::new(&self.observers)
+		self.subscribe(subscriber)
 	}
 }
 
@@ -59,9 +63,10 @@ impl<'a, T, O: 'a> ObservableLike<'a, O> for Subject<T, O>
 
 	fn subscribe(
 		&'a self,
-		_observer: O
+		observer: O,
 	) -> SubjectSubscription<'a, O> {
-		unimplemented!()
+		self.observers.borrow_mut().push(Some(observer));
+		SubjectSubscription::new(&self.observers)
 	}
 }
 
