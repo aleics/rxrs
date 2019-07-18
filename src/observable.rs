@@ -6,17 +6,27 @@ use crate::subscriber::{Subscriber, Observer};
 use crate::operators::map::{MapPredicate, MapSubscriber};
 use crate::operators::filter::{FilterSubscriber, FilterPredicate};
 
+pub struct Unsubscriber {
+	func: Box<dyn Fn()>
+}
+
+impl Unsubscriber {
+	pub fn new<F: 'static>(func: F) -> Unsubscriber where F: Fn() {
+		Unsubscriber { func: Box::new(func) }
+	}
+}
+
 struct ObservableConstructor<'a, O: Observer> {
-	func: Box<dyn Fn(O, Receiver<()>) + 'a>
+	func: Box<dyn Fn(O, Receiver<()>) -> Unsubscriber + 'a>
 }
 
 impl<'a, O: Observer> ObservableConstructor<'a, O> {
 	pub fn new<F>(func: F) -> ObservableConstructor<'a, O>
-		where F: Fn(O, Receiver<()>) + 'a {
+		where F: Fn(O, Receiver<()>) -> Unsubscriber + 'a {
 		ObservableConstructor { func: Box::new(func) }
 	}
 
-	pub fn call(&self, subscriber: O, unsubscriber: Receiver<()>) {
+	pub fn call(&self, subscriber: O, unsubscriber: Receiver<()>) -> Unsubscriber {
 		(self.func)(subscriber, unsubscriber)
 	}
 }
@@ -30,7 +40,7 @@ pub struct Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
 impl<'a, T, O> Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
 	/// Creates a new `Observable` defined by a subscriber function.
 	pub fn new<F>(func: F) -> Observable<'a, T, O>
-		where F: Fn(O, Receiver<()>) + 'a {
+		where F: Fn(O, Receiver<()>) -> Unsubscriber + 'a {
 		Observable { observer_fn: ObservableConstructor::new(func) }
 	}
 }
@@ -43,6 +53,8 @@ impl<'a, T: 'a, U: 'a, D> Observable<'a, T, MapSubscriber<T, U, D>>
 		Observable::new( move |destination: D, _| {
 			let map_subscriber = MapSubscriber::new(destination, predicate);
 			self.subscribe(map_subscriber);
+
+			Unsubscriber::new(|| {})
 		})
 	}
 }
@@ -54,6 +66,8 @@ impl<'a, T: 'a, O: 'a> Observable<'a, T, FilterSubscriber<T, O>>
 		Observable::new( move |destination: O, _| {
 			let map_subscriber = FilterSubscriber::new(destination, predicate);
 			self.subscribe(map_subscriber);
+
+			Unsubscriber::new(|| {})
 		})
 	}
 }

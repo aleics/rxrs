@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use crate::error::RxError;
 use crate::subscription::{SubjectSubscription, TrackedSubjectObservers};
 use crate::subscriber::{Observer, Subscriber};
-use crate::observable::{ObservableLike, Observable};
+use crate::observable::{ObservableLike, Observable, Unsubscriber};
 
 #[derive(Default)]
 pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
@@ -18,6 +18,8 @@ impl<'a, T, O> Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 	pub fn as_observable(&self) -> Observable<T, O> {
 		Observable::new(move |destination, _| {
 			self.subscribe(destination);
+
+			Unsubscriber::new(|| {})
 		})
 	}
 }

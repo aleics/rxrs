@@ -1,4 +1,4 @@
-use rxrs::observable::{Observable, ObservableLike};
+use rxrs::observable::{Observable, ObservableLike, Unsubscriber};
 use rxrs::subscriber::{Observer, Subscriber};
 
 fn main() {
@@ -9,6 +9,8 @@ fn main() {
 		subscriber.complete();
 
 		subscriber.next(&String::from("This should not be printed."));
+
+		Unsubscriber::new(|| {})
 	};
 
 	Observable::new(subscriber_fn).subscribe(Subscriber::new(

@@ -2,7 +2,7 @@ use std::thread::{spawn, sleep};
 use std::time::Duration;
 use std::sync::mpsc::Receiver;
 
-use crate::observable::Observable;
+use crate::observable::{Observable, Unsubscriber};
 use crate::subscriber::Observer;
 use crate::error::RxError;
 
@@ -27,6 +27,8 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 			subscriber.next(value);
 		}
 		subscriber.complete();
+
+		Unsubscriber::new(|| {})
 	};
 	Observable::new(Box::new(observer))
 }
@@ -71,6 +73,8 @@ pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
 				}
 			}
 		});
+
+		Unsubscriber::new(|| {})
 	};
 	Observable::new(Box::new(observer))
 }
