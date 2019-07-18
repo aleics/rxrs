@@ -7,90 +7,90 @@ use crate::observable::ObservableLike;
 
 #[derive(Default)]
 pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
-    observers: TrackedSubjectObservers<O>
+	observers: TrackedSubjectObservers<O>
 }
 
 impl<'a, T> Subject<T, Subscriber<T>> {
 
-    pub fn new() -> Subject<T, Subscriber<T>> {
-        Subject { observers: RefCell::new(Vec::new()) }
-    }
+	pub fn new() -> Subject<T, Subscriber<T>> {
+		Subject { observers: RefCell::new(Vec::new()) }
+	}
 
-    pub fn subscribe_next<N>(&'a self, next: N) -> SubjectSubscription<'a, Subscriber<T>>
-        where N: Fn(&T) + 'static + Send {
-        self.subscribe_all(next, |_| {}, || {})
-    }
+	pub fn subscribe_next<N>(&'a self, next: N) -> SubjectSubscription<'a, Subscriber<T>>
+		where N: Fn(&T) + 'static + Send {
+		self.subscribe_all(next, |_| {}, || {})
+	}
 
-    pub fn subscribe_error<E>(&'a self, error: E) -> SubjectSubscription<'a, Subscriber<T>>
-        where E: Fn(&RxError) + 'static + Send {
-        self.subscribe_all(|_| {}, error, || {})
-    }
+	pub fn subscribe_error<E>(&'a self, error: E) -> SubjectSubscription<'a, Subscriber<T>>
+		where E: Fn(&RxError) + 'static + Send {
+		self.subscribe_all(|_| {}, error, || {})
+	}
 
-    pub fn subscribe_complete<C>(&'a self, complete: C) -> SubjectSubscription<'a, Subscriber<T>>
-        where C: Fn() + 'static + Send {
-        self.subscribe_all(|_| {}, |_| {}, complete)
-    }
+	pub fn subscribe_complete<C>(&'a self, complete: C) -> SubjectSubscription<'a, Subscriber<T>>
+		where C: Fn() + 'static + Send {
+		self.subscribe_all(|_| {}, |_| {}, complete)
+	}
 
-    pub fn subscribe_all<F, E, C>(
-        &'a self,
-        next_handler: F,
-        error_handler:  E,
-        complete_handler: C
-    ) -> SubjectSubscription<'a, Subscriber<T>>
-        where F: Fn(&T) + 'static + Send,
-              E: Fn(&RxError) + 'static + Send,
-              C: Fn() + 'static + Send {
-        // generate a subscriber from the input events
-        let subscriber = Subscriber::<T>::new(
-            next_handler, error_handler, complete_handler
-        );
+	pub fn subscribe_all<F, E, C>(
+		&'a self,
+		next_handler: F,
+		error_handler:  E,
+		complete_handler: C
+	) -> SubjectSubscription<'a, Subscriber<T>>
+		where F: Fn(&T) + 'static + Send,
+					E: Fn(&RxError) + 'static + Send,
+					C: Fn() + 'static + Send {
+		// generate a subscriber from the input events
+		let subscriber = Subscriber::<T>::new(
+			next_handler, error_handler, complete_handler
+		);
 
-        self.observers.borrow_mut().push(Some(subscriber));
+		self.observers.borrow_mut().push(Some(subscriber));
 
-        SubjectSubscription::new(&self.observers)
-    }
+		SubjectSubscription::new(&self.observers)
+	}
 }
 
 impl<'a, T, O: 'a> ObservableLike<'a, O> for Subject<T, O>
-    where O: Observer<Value=T, Error=RxError> {
-    type Subscription = SubjectSubscription<'a, O>;
+	where O: Observer<Value=T, Error=RxError> {
+	type Subscription = SubjectSubscription<'a, O>;
 
-    fn subscribe(
-        &'a self,
-        _observer: O
-    ) -> SubjectSubscription<'a, O> {
-        unimplemented!()
-    }
+	fn subscribe(
+		&'a self,
+		_observer: O
+	) -> SubjectSubscription<'a, O> {
+		unimplemented!()
+	}
 }
 
 impl<T, O> Observer for Subject<T, O> where O: Observer<Value=T, Error=RxError> {
-    type Value = T;
-    type Error = RxError;
+	type Value = T;
+	type Error = RxError;
 
-    fn next(&self, value: &Self::Value) {
-        self.observers.borrow().iter()
-            .for_each(|item| {
-                if let Some(observer) = item {
-                    observer.next(value);
-                }
-            });
-    }
+	fn next(&self, value: &Self::Value) {
+		self.observers.borrow().iter()
+			.for_each(|item| {
+				if let Some(observer) = item {
+					observer.next(value);
+				}
+			});
+	}
 
-    fn error(&self, e: &Self::Error) {
-        self.observers.borrow().iter()
-            .for_each(|item| {
-                if let Some(observer) = item {
-                    observer.error(e);
-                }
-            });
-    }
+	fn error(&self, e: &Self::Error) {
+		self.observers.borrow().iter()
+			.for_each(|item| {
+				if let Some(observer) = item {
+					observer.error(e);
+				}
+			});
+	}
 
-    fn complete(&mut self) {
-        self.observers.borrow_mut().iter_mut()
-            .for_each(|item| {
-                if let Some(observer) = item {
-                    observer.complete();
-                }
-            });
-    }
+	fn complete(&mut self) {
+		self.observers.borrow_mut().iter_mut()
+			.for_each(|item| {
+				if let Some(observer) = item {
+					observer.complete();
+				}
+			});
+	}
 }

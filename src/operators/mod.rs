@@ -21,14 +21,14 @@ pub(crate) mod filter;
 /// );
 /// ```
 pub fn of<T, O>(values: &[T]) -> Observable<T, O>
-    where O: Observer<Value=T, Error=RxError> {
-    let observer = move |mut subscriber: O, _| {
-        for value in values {
-            subscriber.next(value);
-        }
-        subscriber.complete();
-    };
-    Observable::new(Box::new(observer))
+	where O: Observer<Value=T, Error=RxError> {
+	let observer = move |mut subscriber: O, _| {
+		for value in values {
+			subscriber.next(value);
+		}
+		subscriber.complete();
+	};
+	Observable::new(Box::new(observer))
 }
 
 /// `interval` creates an infinite observable that emits sequential numbers every specified
@@ -55,22 +55,22 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 /// j.join().unwrap();
 /// ```
 pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
-    where O: Observer<Value=u64, Error=RxError> + Send + 'static {
-    let observer = move |subscriber: O, unsubscriber: Receiver<()>| {
-        spawn(move || {
-            let mut count = 0;
+	where O: Observer<Value=u64, Error=RxError> + Send + 'static {
+	let observer = move |subscriber: O, unsubscriber: Receiver<()>| {
+		spawn(move || {
+			let mut count = 0;
 
-            loop {
-                sleep(Duration::from_millis(interval_time));
-                subscriber.next(&count);
+			loop {
+				sleep(Duration::from_millis(interval_time));
+				subscriber.next(&count);
 
-                count += 1;
+				count += 1;
 
-                if unsubscriber.try_recv().is_ok() {
-                    break;
-                }
-            }
-        });
-    };
-    Observable::new(Box::new(observer))
+				if unsubscriber.try_recv().is_ok() {
+					break;
+				}
+			}
+		});
+	};
+	Observable::new(Box::new(observer))
 }
