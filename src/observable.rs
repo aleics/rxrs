@@ -1,5 +1,3 @@
-use std::sync::mpsc::{channel, Sender};
-
 use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer};
@@ -13,6 +11,10 @@ pub struct Unsubscriber {
 impl Unsubscriber {
 	pub fn new<F: 'static>(func: F) -> Unsubscriber where F: FnMut() {
 		Unsubscriber { func: Box::new(func) }
+	}
+
+	pub fn call(&mut self) {
+		(self.func)();
 	}
 }
 
@@ -116,13 +118,7 @@ impl<'a, T, O> ObservableLike<'a, O> for Observable<'a, T, O>
 	/// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
 	/// provided when creating the `Observable` instance is called, and a `Subscription` is created.
 	fn subscribe(&self, observer: O) -> Self::Subscription {
-		// call the observer callback function and include a channel receiver for the
-		// a possible unsubscribe action
-		let (tx, _): (Sender<()>, _) = channel();
-		self.observer_fn.call(observer);
-
-		// create a subscription and subscribe to the previous callback
-		// a channel sender is sent to the subscription so that it can be unsubscribed
-		ObservableSubscription::new(tx)
+		let unsubscriber = self.observer_fn.call(observer);
+		ObservableSubscription::new(unsubscriber)
 	}
 }

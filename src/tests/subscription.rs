@@ -1,28 +1,23 @@
-use std::sync::mpsc::channel;
 use std::cell::RefCell;
 
 use crate::subscription::{Subscription, SubjectSubscription, ObservableSubscription};
 use crate::subscriber::Subscriber;
+use crate::observable::Unsubscriber;
 
 #[test]
 fn observable_new() {
-	let (tx, _) = channel();
-	let subscription = ObservableSubscription::new(tx);
+	let unsubscriber = Unsubscriber::new(|| {});
+	let subscription = ObservableSubscription::new(unsubscriber);
 	assert_eq!(subscription.closed, false);
 }
 
 #[test]
 fn observable_unsubscribe() {
-	let (tx, rx) = channel();
-	let mut subscription = ObservableSubscription::new(tx);
+	let unsubscriber = Unsubscriber::new(|| {});
+	let mut subscription = ObservableSubscription::new(unsubscriber);
 
 	subscription.unsubscribe();
-
-	if let Ok(_) = rx.recv() {
-		assert_eq!(subscription.closed, true);
-	} else {
-		assert_eq!(subscription.closed, false);
-	}
+	assert_eq!(subscription.closed, true);
 }
 
 #[test]

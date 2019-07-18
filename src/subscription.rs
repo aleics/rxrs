@@ -1,8 +1,8 @@
-use std::sync::mpsc::Sender;
 use std::cell::RefCell;
 
 use crate::subscriber::Observer;
 use crate::error::RxError;
+use crate::observable::Unsubscriber;
 
 pub trait Subscription {
 	fn unsubscribe(&mut self);
@@ -10,20 +10,20 @@ pub trait Subscription {
 
 pub struct ObservableSubscription {
 	pub closed: bool,
-	unsubscribe_dispatcher: Sender<()>
+	unsubscriber: Unsubscriber
 }
 
 impl ObservableSubscription {
-	pub fn new(unsubscribe_dispatcher: Sender<()>) -> ObservableSubscription {
-		ObservableSubscription { closed: false, unsubscribe_dispatcher }
+	pub fn new(unsubscriber: Unsubscriber) -> ObservableSubscription {
+		ObservableSubscription { closed: false, unsubscriber }
 	}
 }
 
 impl Subscription for ObservableSubscription {
 	fn unsubscribe(&mut self) {
-		match &self.unsubscribe_dispatcher.send(()) {
-			Ok(_) => self.closed = true,
-			Err(e) => println!("Unsubscribe action could not be dispatched: {}", e)
+		if !self.closed {
+			self.unsubscriber.call();
+			self.closed = true;
 		}
 	}
 }
