@@ -7,11 +7,11 @@ use crate::operators::map::{MapPredicate, MapSubscriber};
 use crate::operators::filter::{FilterSubscriber, FilterPredicate};
 
 pub struct Unsubscriber {
-	func: Box<dyn Fn()>
+	func: Box<dyn FnMut()>
 }
 
 impl Unsubscriber {
-	pub fn new<F: 'static>(func: F) -> Unsubscriber where F: Fn() {
+	pub fn new<F: 'static>(func: F) -> Unsubscriber where F: FnMut() {
 		Unsubscriber { func: Box::new(func) }
 	}
 }
@@ -52,9 +52,9 @@ impl<'a, T: 'a, U: 'a, D> Observable<'a, T, MapSubscriber<T, U, D>>
 		where D: Observer<Value=U, Error=RxError> {
 		Observable::new( move |destination: D, _| {
 			let map_subscriber = MapSubscriber::new(destination, predicate);
-			self.subscribe(map_subscriber);
+			let mut subscription = self.subscribe(map_subscriber);
 
-			Unsubscriber::new(|| {})
+			Unsubscriber::new(move || subscription.unsubscribe())
 		})
 	}
 }
@@ -65,9 +65,9 @@ impl<'a, T: 'a, O: 'a> Observable<'a, T, FilterSubscriber<T, O>>
 	pub fn filter(self, predicate: FilterPredicate<T>) -> Observable<'a, T, O> {
 		Observable::new( move |destination: O, _| {
 			let map_subscriber = FilterSubscriber::new(destination, predicate);
-			self.subscribe(map_subscriber);
+			let mut subscription = self.subscribe(map_subscriber);
 
-			Unsubscriber::new(|| {})
+			Unsubscriber::new(move || subscription.unsubscribe())
 		})
 	}
 }

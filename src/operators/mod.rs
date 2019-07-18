@@ -1,6 +1,6 @@
 use std::thread::{spawn, sleep};
 use std::time::Duration;
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc::channel;
 
 use crate::observable::{Observable, Unsubscriber};
 use crate::subscriber::Observer;
@@ -58,7 +58,8 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 /// ```
 pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
 	where O: Observer<Value=u64, Error=RxError> + Send + 'static {
-	let observer = move |subscriber: O, unsubscriber: Receiver<()>| {
+	let observer = move |subscriber: O, _| {
+		let (tx, rx) = channel();
 		spawn(move || {
 			let mut count = 0;
 
@@ -68,13 +69,15 @@ pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
 
 				count += 1;
 
-				if unsubscriber.try_recv().is_ok() {
+				if rx.try_recv().is_ok() {
 					break;
 				}
 			}
 		});
 
-		Unsubscriber::new(|| {})
+		Unsubscriber::new(move || {
+			tx.send(()).unwrap();
+		})
 	};
 	Observable::new(Box::new(observer))
 }
