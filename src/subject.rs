@@ -10,11 +10,13 @@ pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 	observers: TrackedSubjectObservers<O>
 }
 
-impl<'a, T> Subject<T, Subscriber<T>> {
-
-	pub fn new() -> Subject<T, Subscriber<T>> {
+impl<'a, T, O> Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+	pub fn new() -> Subject<T, O> {
 		Subject { observers: RefCell::new(Vec::new()) }
 	}
+}
+
+impl<'a, T> Subject<T, Subscriber<T>> {
 
 	pub fn subscribe_next<N>(&'a self, next: N) -> SubjectSubscription<'a, Subscriber<T>>
 		where N: Fn(&T) + 'static + Send {
