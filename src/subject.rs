@@ -16,7 +16,7 @@ impl<'a, T, O> Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 	}
 
 	pub fn as_observable(&self) -> Observable<T, O> {
-		Observable::new(move |destination, _| {
+		Observable::new(move |destination| {
 			self.subscribe(destination);
 
 			Unsubscriber::new(|| {})

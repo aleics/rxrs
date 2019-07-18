@@ -22,7 +22,7 @@ pub(crate) mod filter;
 /// ```
 pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 	where O: Observer<Value=T, Error=RxError> {
-	let observer = move |mut subscriber: O, _| {
+	let observer = move |mut subscriber: O| {
 		for value in values {
 			subscriber.next(value);
 		}
@@ -58,7 +58,7 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 /// ```
 pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
 	where O: Observer<Value=u64, Error=RxError> + Send + 'static {
-	let observer = move |subscriber: O, _| {
+	let observer = move |subscriber: O| {
 		let (tx, rx) = channel();
 		spawn(move || {
 			let mut count = 0;

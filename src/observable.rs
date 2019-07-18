@@ -1,4 +1,4 @@
-use std::sync::mpsc::{channel, Sender, Receiver};
+use std::sync::mpsc::{channel, Sender};
 
 use crate::subscription::{ObservableSubscription, Subscription};
 use crate::error::RxError;
@@ -17,17 +17,17 @@ impl Unsubscriber {
 }
 
 struct ObservableConstructor<'a, O: Observer> {
-	func: Box<dyn Fn(O, Receiver<()>) -> Unsubscriber + 'a>
+	func: Box<dyn Fn(O) -> Unsubscriber + 'a>
 }
 
 impl<'a, O: Observer> ObservableConstructor<'a, O> {
 	pub fn new<F>(func: F) -> ObservableConstructor<'a, O>
-		where F: Fn(O, Receiver<()>) -> Unsubscriber + 'a {
+		where F: Fn(O) -> Unsubscriber + 'a {
 		ObservableConstructor { func: Box::new(func) }
 	}
 
-	pub fn call(&self, subscriber: O, unsubscriber: Receiver<()>) -> Unsubscriber {
-		(self.func)(subscriber, unsubscriber)
+	pub fn call(&self, subscriber: O) -> Unsubscriber {
+		(self.func)(subscriber)
 	}
 }
 
@@ -40,7 +40,7 @@ pub struct Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
 impl<'a, T, O> Observable<'a, T, O> where O: Observer<Value=T, Error=RxError> {
 	/// Creates a new `Observable` defined by a subscriber function.
 	pub fn new<F>(func: F) -> Observable<'a, T, O>
-		where F: Fn(O, Receiver<()>) -> Unsubscriber + 'a {
+		where F: Fn(O) -> Unsubscriber + 'a {
 		Observable { observer_fn: ObservableConstructor::new(func) }
 	}
 }
@@ -50,7 +50,7 @@ impl<'a, T: 'a, U: 'a, D> Observable<'a, T, MapSubscriber<T, U, D>>
 
 	pub fn map(self, predicate: MapPredicate<T, U>) -> Observable<'a, U, D>
 		where D: Observer<Value=U, Error=RxError> {
-		Observable::new( move |destination: D, _| {
+		Observable::new( move |destination: D| {
 			let map_subscriber = MapSubscriber::new(destination, predicate);
 			let mut subscription = self.subscribe(map_subscriber);
 
@@ -63,7 +63,7 @@ impl<'a, T: 'a, O: 'a> Observable<'a, T, FilterSubscriber<T, O>>
 	where O: Observer<Value=T, Error=RxError> {
 
 	pub fn filter(self, predicate: FilterPredicate<T>) -> Observable<'a, T, O> {
-		Observable::new( move |destination: O, _| {
+		Observable::new( move |destination: O| {
 			let map_subscriber = FilterSubscriber::new(destination, predicate);
 			let mut subscription = self.subscribe(map_subscriber);
 
@@ -118,8 +118,8 @@ impl<'a, T, O> ObservableLike<'a, O> for Observable<'a, T, O>
 	fn subscribe(&self, observer: O) -> Self::Subscription {
 		// call the observer callback function and include a channel receiver for the
 		// a possible unsubscribe action
-		let (tx, rx): (Sender<()>, Receiver<()>) = channel();
-		self.observer_fn.call(observer, rx);
+		let (tx, _): (Sender<()>, _) = channel();
+		self.observer_fn.call(observer);
 
 		// create a subscription and subscribe to the previous callback
 		// a channel sender is sent to the subscription so that it can be unsubscribed

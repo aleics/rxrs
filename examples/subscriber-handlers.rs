@@ -2,7 +2,7 @@ use rxrs::observable::{Observable, ObservableLike, Unsubscriber};
 use rxrs::subscriber::{Observer, Subscriber};
 
 fn main() {
-	let subscriber_fn = |mut subscriber: Subscriber<String>, _| {
+	let subscriber_fn = |mut subscriber: Subscriber<String>| {
 		subscriber.next(&String::from("Oh"));
 		subscriber.next(&String::from("hi"));
 		subscriber.next(&String::from("Mark!"));
