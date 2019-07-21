@@ -1,4 +1,4 @@
-use crate::subscription::{ObservableSubscription, Subscription};
+use crate::subscription::{Subscription, Unsubscribable};
 use crate::error::RxError;
 use crate::subscriber::{Subscriber, Observer};
 use crate::operators::map::{MapPredicate, MapSubscriber};
@@ -76,22 +76,22 @@ impl<'a, T: 'a, O: 'a> Observable<'a, T, FilterSubscriber<T, O>>
 
 impl<'a, T> Observable<'a, T, Subscriber<T>> {
 
-	pub fn subscribe_next<N>(&self, next: N) -> ObservableSubscription
+	pub fn subscribe_next<N>(&self, next: N) -> Subscription
 		where N: Fn(&T) + 'static + Send {
 		self.subscribe_all(next, |_| {}, || {})
 	}
 
-	pub fn subscribe_error<E>(&self, error: E) -> ObservableSubscription
+	pub fn subscribe_error<E>(&self, error: E) -> Subscription
 		where E: Fn(&RxError) + 'static + Send {
 		self.subscribe_all(|_| {}, error, || {})
 	}
 
-	pub fn subscribe_complete<C>(&self, complete: C) -> ObservableSubscription
+	pub fn subscribe_complete<C>(&self, complete: C) -> Subscription
 		where C: Fn() + 'static + Send {
 		self.subscribe_all(|_| {}, |_| {}, complete)
 	}
 
-	pub fn subscribe_all<N, E, C>(&self, next: N, error:  E, complete: C) -> ObservableSubscription
+	pub fn subscribe_all<N, E, C>(&self, next: N, error:  E, complete: C) -> Subscription
 		where N: Fn(&T) + 'static + Send,
 					E: Fn(&RxError) + 'static + Send,
 					C: Fn() + 'static + Send {
@@ -105,7 +105,7 @@ impl<'a, T> Observable<'a, T, Subscriber<T>> {
 }
 
 pub trait ObservableLike<'a, O> {
-	type Subscription: Subscription;
+	type Subscription: Unsubscribable;
 
 	fn subscribe(&'a self, observer: O) -> Self::Subscription;
 }
@@ -113,12 +113,12 @@ pub trait ObservableLike<'a, O> {
 impl<'a, T, O> ObservableLike<'a, O> for Observable<'a, T, O>
 	where O: Observer<Value=T, Error=RxError> {
 
-	type Subscription = ObservableSubscription;
+	type Subscription = Subscription;
 
 	/// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
 	/// provided when creating the `Observable` instance is called, and a `Subscription` is created.
 	fn subscribe(&self, observer: O) -> Self::Subscription {
 		let unsubscriber = self.observer_fn.call(observer);
-		ObservableSubscription::new(unsubscriber)
+		Subscription::new(unsubscriber)
 	}
 }

@@ -4,22 +4,22 @@ use crate::subscriber::Observer;
 use crate::error::RxError;
 use crate::observable::Unsubscriber;
 
-pub trait Subscription {
+pub trait Unsubscribable {
 	fn unsubscribe(&mut self);
 }
 
-pub struct ObservableSubscription {
+pub struct Subscription {
 	pub closed: bool,
 	unsubscriber: Unsubscriber
 }
 
-impl ObservableSubscription {
-	pub fn new(unsubscriber: Unsubscriber) -> ObservableSubscription {
-		ObservableSubscription { closed: false, unsubscriber }
+impl Subscription {
+	pub fn new(unsubscriber: Unsubscriber) -> Subscription {
+		Subscription { closed: false, unsubscriber }
 	}
 }
 
-impl Subscription for ObservableSubscription {
+impl Unsubscribable for Subscription {
 	fn unsubscribe(&mut self) {
 		if !self.closed {
 			self.unsubscriber.call();
@@ -43,7 +43,7 @@ impl<'a, T, O> SubjectSubscription<'a, O> where O: Observer<Value=T, Error=RxErr
 	}
 }
 
-impl<'a, T, O> Subscription for SubjectSubscription<'a, O> where O: Observer<Value=T, Error=RxError> {
+impl<'a, T, O> Unsubscribable for SubjectSubscription<'a, O> where O: Observer<Value=T, Error=RxError> {
 	fn unsubscribe(&mut self) {
 		if !self.closed {
 			let mut observers = self.subject_ref.borrow_mut();

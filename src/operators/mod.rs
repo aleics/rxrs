@@ -39,7 +39,7 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 /// use std::thread;
 /// use std::time::Duration;
 /// use rxrs::observable::ObservableLike;
-/// use rxrs::subscription::Subscription;
+/// use rxrs::subscription::Unsubscribable;
 /// use rxrs::operators::interval;
 ///
 ///

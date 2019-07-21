@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use rxrs::subject::Subject;
 use rxrs::observable::ObservableLike;
-use rxrs::subscription::Subscription;
+use rxrs::subscription::Unsubscribable;
 use rxrs::operators::{of, interval};
 
 fn main() {

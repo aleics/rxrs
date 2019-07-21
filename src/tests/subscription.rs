@@ -1,20 +1,20 @@
 use std::cell::RefCell;
 
-use crate::subscription::{Subscription, SubjectSubscription, ObservableSubscription};
+use crate::subscription::{Unsubscribable, SubjectSubscription, Subscription};
 use crate::subscriber::Subscriber;
 use crate::observable::Unsubscriber;
 
 #[test]
 fn observable_new() {
 	let unsubscriber = Unsubscriber::new(|| {});
-	let subscription = ObservableSubscription::new(unsubscriber);
+	let subscription = Subscription::new(unsubscriber);
 	assert_eq!(subscription.closed, false);
 }
 
 #[test]
 fn observable_unsubscribe() {
 	let unsubscriber = Unsubscriber::new(|| {});
-	let mut subscription = ObservableSubscription::new(unsubscriber);
+	let mut subscription = Subscription::new(unsubscriber);
 
 	subscription.unsubscribe();
 	assert_eq!(subscription.closed, true);
