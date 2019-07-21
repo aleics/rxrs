@@ -1,18 +1,19 @@
 use std::cell::RefCell;
 
 use crate::error::RxError;
-use crate::subscription::{SubjectSubscription, TrackedSubjectObservers};
+use crate::subscription::{SubjectSubscription, TrackedSubjectObservers, Unsubscribable};
 use crate::subscriber::{Observer, Subscriber};
 use crate::observable::{ObservableLike, Observable, Unsubscriber};
 
 #[derive(Default)]
 pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+	pub closed: bool,
 	observers: TrackedSubjectObservers<O>
 }
 
 impl<'a, T, O> Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 	pub fn new() -> Subject<T, O> {
-		Subject { observers: RefCell::new(Vec::new()) }
+		Subject { closed: false, observers: RefCell::new(Vec::new()) }
 	}
 
 	pub fn as_observable(&self) -> Observable<T, O> {
@@ -77,29 +78,44 @@ impl<T, O> Observer for Subject<T, O> where O: Observer<Value=T, Error=RxError> 
 	type Error = RxError;
 
 	fn next(&self, value: &Self::Value) {
-		self.observers.borrow().iter()
-			.for_each(|item| {
-				if let Some(observer) = item {
-					observer.next(value);
-				}
-			});
+		if !self.closed {
+			self.observers.borrow().iter()
+				.for_each(|item| {
+					if let Some(observer) = item {
+						observer.next(value);
+					}
+				});
+		}
 	}
 
 	fn error(&self, e: &Self::Error) {
-		self.observers.borrow().iter()
-			.for_each(|item| {
-				if let Some(observer) = item {
-					observer.error(e);
-				}
-			});
+		if !self.closed {
+			self.observers.borrow().iter()
+				.for_each(|item| {
+					if let Some(observer) = item {
+						observer.error(e);
+					}
+				});
+		}
 	}
 
 	fn complete(&mut self) {
-		self.observers.borrow_mut().iter_mut()
-			.for_each(|item| {
-				if let Some(observer) = item {
-					observer.complete();
-				}
-			});
+		if !self.closed {
+			self.observers.borrow_mut().iter_mut()
+				.for_each(|item| {
+					if let Some(observer) = item {
+						observer.complete();
+					}
+				});
+		}
+	}
+}
+
+impl<T, O> Unsubscribable for Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+	fn unsubscribe(&mut self) {
+		if !self.closed {
+			self.closed = true;
+			self.observers = RefCell::new(Vec::new())
+		}
 	}
 }
