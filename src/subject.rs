@@ -60,14 +60,12 @@ impl<'a, T> Subject<T, Subscriber<T>> {
 	}
 }
 
-impl<'a, T, O: 'a> ObservableLike<'a, O> for Subject<T, O>
+impl<'a, T, O: 'a> ObservableLike<'a> for Subject<T, O>
 	where O: Observer<Value=T, Error=RxError> {
+	type Observer = O;
 	type Subscription = SubjectSubscription<'a, O>;
 
-	fn subscribe(
-		&'a self,
-		observer: O,
-	) -> SubjectSubscription<'a, O> {
+	fn subscribe(&'a self, observer: O) -> SubjectSubscription<'a, O> {
 		self.observers.borrow_mut().push(Some(observer));
 		SubjectSubscription::new(&self.observers)
 	}

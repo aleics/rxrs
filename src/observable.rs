@@ -104,20 +104,22 @@ impl<'a, T> Observable<'a, T, Subscriber<T>> {
 	}
 }
 
-pub trait ObservableLike<'a, O> {
+pub trait ObservableLike<'a> {
+	type Observer: Observer;
 	type Subscription: Unsubscribable;
 
-	fn subscribe(&'a self, observer: O) -> Self::Subscription;
+	fn subscribe(&'a self, observer: Self::Observer) -> Self::Subscription;
 }
 
-impl<'a, T, O> ObservableLike<'a, O> for Observable<'a, T, O>
+impl<'a, T, O> ObservableLike<'a> for Observable<'a, T, O>
 	where O: Observer<Value=T, Error=RxError> {
 
+	type Observer = O;
 	type Subscription = Subscription;
 
 	/// Subscribes to the event stream of the `Observable` instance. The `Subscriber` function
 	/// provided when creating the `Observable` instance is called, and a `Subscription` is created.
-	fn subscribe(&self, observer: O) -> Self::Subscription {
+	fn subscribe(&self, observer: Self::Observer) -> Self::Subscription {
 		let unsubscriber = self.observer_fn.call(observer);
 		Subscription::new(unsubscriber)
 	}
