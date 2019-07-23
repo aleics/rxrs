@@ -1,24 +1,24 @@
-use crate::subscriber::Observer;
+use crate::observer::ObserverLike;
 use crate::error::RxError;
 
 pub type FilterPredicate<T> = fn(&T) -> bool;
 
-pub struct FilterSubscriber<T, D> where D: Observer<Value=T, Error=RxError> {
+pub struct FilterObserver<T, D> where D: ObserverLike<Value=T, Error=RxError> {
 	destination: D,
 	predicate: FilterPredicate<T>
 }
 
-impl<T, D> FilterSubscriber<T, D> where D: Observer<Value=T, Error=RxError> {
+impl<T, D> FilterObserver<T, D> where D: ObserverLike<Value=T, Error=RxError> {
 	pub fn new(
 		destination: D,
 		predicate: FilterPredicate<T>
-	) -> FilterSubscriber<T, D> {
-		FilterSubscriber { destination, predicate }
+	) -> FilterObserver<T, D> {
+		FilterObserver { destination, predicate }
 	}
 }
 
-impl<T, D> Observer for FilterSubscriber<T, D>
-	where D: Observer<Value=T, Error=RxError> {
+impl<T, D> ObserverLike for FilterObserver<T, D>
+	where D: ObserverLike<Value=T, Error=RxError> {
 
 	type Value = T;
 	type Error = RxError;

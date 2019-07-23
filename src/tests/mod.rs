@@ -2,6 +2,6 @@ mod filter;
 mod interval;
 mod map;
 mod of;
-mod subscriber;
+mod observer;
 mod subscription;
 mod utils;

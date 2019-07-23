@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use crate::subscription::{Unsubscribable, SubjectSubscription, Subscription};
-use crate::subscriber::Subscriber;
+use crate::observer::Observer;
 use crate::observable::Unsubscriber;
 
 #[test]
@@ -22,13 +22,13 @@ fn observable_unsubscribe() {
 
 #[test]
 fn subject_new() {
-	let subscriber: Subscriber<i32> = Subscriber::new(
+	let observer: Observer<i32> = Observer::new(
 		|value| println!("{}", value),
 		|e| println!("{}", e),
 		|| println!("complete")
 	);
 	let mut observers = Vec::new();
-	observers.push(Some(subscriber));
+	observers.push(Some(observer));
 
 	let observers_ref = &RefCell::new(observers);
 	let subscription = SubjectSubscription::new(observers_ref);
@@ -38,13 +38,13 @@ fn subject_new() {
 
 #[test]
 fn subject_unsubscribe() {
-	let subscriber: Subscriber<i32> = Subscriber::new(
+	let observer: Observer<i32> = Observer::new(
 		|value| println!("{}", value),
 		|e| println!("{}", e),
 		|| println!("complete")
 	);
 	let mut observers = Vec::new();
-	observers.push(Some(subscriber));
+	observers.push(Some(observer));
 
 	let observers_ref = &RefCell::new(observers);
 	let mut subscription = SubjectSubscription::new(observers_ref);
@@ -56,23 +56,23 @@ fn subject_unsubscribe() {
 
 #[test]
 fn subject_multiple_unsubscribe() {
-	let subscriber_a: Subscriber<i32> = Subscriber::new(
+	let observer_a: Observer<i32> = Observer::new(
 		|value| println!("{}", value),
 		|e| println!("{}", e),
 		|| println!("complete")
 	);
 	let mut observers = Vec::new();
-	observers.push(Some(subscriber_a));
+	observers.push(Some(observer_a));
 
 	let observers_ref = RefCell::new(observers);
 	let mut first = SubjectSubscription::new(&observers_ref);
 
-	let subscriber_b: Subscriber<i32> = Subscriber::new(
+	let observer_b: Observer<i32> = Observer::new(
 		|value| println!("{}", value),
 		|e| println!("{}", e),
 		|| println!("complete")
 	);
-	observers_ref.borrow_mut().push(Some(subscriber_b));
+	observers_ref.borrow_mut().push(Some(observer_b));
 	let mut second = SubjectSubscription::new(&observers_ref);
 
 	first.unsubscribe();

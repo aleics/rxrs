@@ -3,7 +3,7 @@ use std::time::Duration;
 use std::sync::mpsc::channel;
 
 use crate::observable::{Observable, Unsubscriber};
-use crate::subscriber::Observer;
+use crate::observer::ObserverLike;
 use crate::error::RxError;
 
 pub(crate) mod map;
@@ -21,7 +21,7 @@ pub(crate) mod filter;
 /// );
 /// ```
 pub fn of<T, O>(values: &[T]) -> Observable<T, O>
-	where O: Observer<Value=T, Error=RxError> {
+	where O: ObserverLike<Value=T, Error=RxError> {
 	let observer = move |mut subscriber: O| {
 		for value in values {
 			subscriber.next(value);
@@ -57,7 +57,7 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 /// j.join().unwrap();
 /// ```
 pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
-	where O: Observer<Value=u64, Error=RxError> + Send + 'static {
+	where O: ObserverLike<Value=u64, Error=RxError> + Send + 'static {
 	let observer = move |subscriber: O| {
 		let (tx, rx) = channel();
 		spawn(move || {

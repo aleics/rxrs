@@ -1,5 +1,5 @@
 use rxrs::subject::Subject;
-use rxrs::subscriber::Observer;
+use rxrs::observer::ObserverLike;
 use rxrs::subscription::Unsubscribable;
 
 fn main() {

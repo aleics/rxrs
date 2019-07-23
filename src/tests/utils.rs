@@ -1,8 +1,8 @@
 use crate::observable::Observable;
-use crate::subscriber::Subscriber;
+use crate::observer::Observer;
 use std::sync::mpsc::channel;
 
-pub fn values_sent<T>(observable: &Observable<T, Subscriber<T>>, expected: &[T]) -> bool
+pub fn values_sent<T>(observable: &Observable<T, Observer<T>>, expected: &[T]) -> bool
 	where T: 'static + Clone + PartialEq + Sync + Send {
 	let (tx, rx) = channel();
 
@@ -27,7 +27,7 @@ pub fn values_sent<T>(observable: &Observable<T, Subscriber<T>>, expected: &[T])
 	true
 }
 
-pub fn is_completed<T>(observable: &Observable<T, Subscriber<T>>) -> bool {
+pub fn is_completed<T>(observable: &Observable<T, Observer<T>>) -> bool {
 	let (tx, rx) = channel();
 	observable.subscribe_complete(move || tx.send(true).unwrap());
 

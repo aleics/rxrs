@@ -2,16 +2,16 @@ use std::cell::RefCell;
 
 use crate::error::RxError;
 use crate::subscription::{SubjectSubscription, TrackedSubjectObservers, Unsubscribable};
-use crate::subscriber::{Observer, Subscriber};
+use crate::observer::{ObserverLike, Observer};
 use crate::observable::{ObservableLike, Observable, Unsubscriber};
 
 #[derive(Default)]
-pub struct Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+pub struct Subject<T, O> where O: ObserverLike<Value=T, Error=RxError> {
 	pub closed: bool,
 	observers: TrackedSubjectObservers<O>
 }
 
-impl<'a, T, O> Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+impl<'a, T, O> Subject<T, O> where O: ObserverLike<Value=T, Error=RxError> {
 	pub fn new() -> Subject<T, O> {
 		Subject { closed: false, observers: RefCell::new(Vec::new()) }
 	}
@@ -25,19 +25,19 @@ impl<'a, T, O> Subject<T, O> where O: Observer<Value=T, Error=RxError> {
 	}
 }
 
-impl<'a, T> Subject<T, Subscriber<T>> {
+impl<'a, T> Subject<T, Observer<T>> {
 
-	pub fn subscribe_next<N>(&'a self, next: N) -> SubjectSubscription<'a, Subscriber<T>>
+	pub fn subscribe_next<N>(&'a self, next: N) -> SubjectSubscription<'a, Observer<T>>
 		where N: Fn(&T) + 'static + Send {
 		self.subscribe_all(next, |_| {}, || {})
 	}
 
-	pub fn subscribe_error<E>(&'a self, error: E) -> SubjectSubscription<'a, Subscriber<T>>
+	pub fn subscribe_error<E>(&'a self, error: E) -> SubjectSubscription<'a, Observer<T>>
 		where E: Fn(&RxError) + 'static + Send {
 		self.subscribe_all(|_| {}, error, || {})
 	}
 
-	pub fn subscribe_complete<C>(&'a self, complete: C) -> SubjectSubscription<'a, Subscriber<T>>
+	pub fn subscribe_complete<C>(&'a self, complete: C) -> SubjectSubscription<'a, Observer<T>>
 		where C: Fn() + 'static + Send {
 		self.subscribe_all(|_| {}, |_| {}, complete)
 	}
@@ -47,21 +47,21 @@ impl<'a, T> Subject<T, Subscriber<T>> {
 		next_handler: F,
 		error_handler: E,
 		complete_handler: C,
-	) -> SubjectSubscription<'a, Subscriber<T>>
+	) -> SubjectSubscription<'a, Observer<T>>
 		where F: Fn(&T) + 'static + Send,
 					E: Fn(&RxError) + 'static + Send,
 					C: Fn() + 'static + Send {
 		// generate a subscriber from the input events
-		let subscriber = Subscriber::<T>::new(
+		let observer = Observer::<T>::new(
 			next_handler, error_handler, complete_handler,
 		);
 
-		self.subscribe(subscriber)
+		self.subscribe(observer)
 	}
 }
 
 impl<'a, T, O: 'a> ObservableLike<'a> for Subject<T, O>
-	where O: Observer<Value=T, Error=RxError> {
+	where O: ObserverLike<Value=T, Error=RxError> {
 	type Observer = O;
 	type Subscription = SubjectSubscription<'a, O>;
 
@@ -71,7 +71,7 @@ impl<'a, T, O: 'a> ObservableLike<'a> for Subject<T, O>
 	}
 }
 
-impl<T, O> Observer for Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+impl<T, O> ObserverLike for Subject<T, O> where O: ObserverLike<Value=T, Error=RxError> {
 	type Value = T;
 	type Error = RxError;
 
@@ -109,7 +109,7 @@ impl<T, O> Observer for Subject<T, O> where O: Observer<Value=T, Error=RxError> 
 	}
 }
 
-impl<T, O> Unsubscribable for Subject<T, O> where O: Observer<Value=T, Error=RxError> {
+impl<T, O> Unsubscribable for Subject<T, O> where O: ObserverLike<Value=T, Error=RxError> {
 	fn unsubscribe(&mut self) {
 		if !self.closed {
 			self.closed = true;

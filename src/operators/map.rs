@@ -1,24 +1,24 @@
-use crate::subscriber::Observer;
+use crate::observer::ObserverLike;
 use crate::error::RxError;
 
 pub type MapPredicate<T, U> = fn(&T) -> U;
 
-pub struct MapSubscriber<T, U, D> where D: Observer<Value=U, Error=RxError> {
+pub struct MapObserver<T, U, D> where D: ObserverLike<Value=U, Error=RxError> {
 	destination: D,
 	predicate: MapPredicate<T, U>
 }
 
-impl<T, U, D> MapSubscriber<T, U, D> where D: Observer<Value=U, Error=RxError> {
+impl<T, U, D> MapObserver<T, U, D> where D: ObserverLike<Value=U, Error=RxError> {
 	pub fn new(
 		destination: D,
 		predicate: MapPredicate<T, U>
-	) -> MapSubscriber<T, U, D> {
-		MapSubscriber { destination, predicate }
+	) -> MapObserver<T, U, D> {
+		MapObserver { destination, predicate }
 	}
 }
 
-impl<T, U, D> Observer for MapSubscriber<T, U, D>
-	where D: Observer<Value=U, Error=RxError> {
+impl<T, U, D> ObserverLike for MapObserver<T, U, D>
+	where D: ObserverLike<Value=U, Error=RxError> {
 
 	type Value = T;
 	type Error = RxError;

@@ -1,6 +1,6 @@
 use crate::error::RxError;
 
-pub trait Observer {
+pub trait ObserverLike {
 	type Value;
 	type Error;
 
@@ -9,19 +9,19 @@ pub trait Observer {
 	fn complete(&mut self) -> ();
 }
 
-pub struct Subscriber<T> {
+pub struct Observer<T> {
 	next_fn: Box<dyn Fn(&T) + Send>,
 	error_fn: Box<dyn Fn(&RxError) + Send>,
 	complete_fn: Box<dyn Fn() + Send>,
 	pub stopped: bool
 }
 
-impl<T> Subscriber<T> {
-	pub fn new<N, E, C>(next: N, error: E, complete: C) -> Subscriber<T>
+impl<T> Observer<T> {
+	pub fn new<N, E, C>(next: N, error: E, complete: C) -> Observer<T>
 		where N: Fn(&T) + 'static + Send,
 					E: Fn(&RxError) + 'static + Send,
 					C: Fn() + 'static + Send {
-		Subscriber {
+		Observer {
 			next_fn: Box::new(next),
 			error_fn: Box::new(error),
 			complete_fn: Box::new(complete),
@@ -30,7 +30,7 @@ impl<T> Subscriber<T> {
 	}
 }
 
-impl<T> Observer for Subscriber<T> {
+impl<T> ObserverLike for Observer<T> {
 	type Value = T;
 	type Error = RxError;
 

@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use crate::subscriber::Observer;
+use crate::observer::ObserverLike;
 use crate::error::RxError;
 use crate::observable::Unsubscriber;
 
@@ -36,14 +36,14 @@ pub struct SubjectSubscription<'a, O> {
 	pub item: usize
 }
 
-impl<'a, T, O> SubjectSubscription<'a, O> where O: Observer<Value=T, Error=RxError> {
+impl<'a, T, O> SubjectSubscription<'a, O> where O: ObserverLike<Value=T, Error=RxError> {
 	pub fn new(subject_ref: &'a TrackedSubjectObservers<O>) -> SubjectSubscription<'a, O> {
 		let item = subject_ref.borrow().len() - 1;
 		SubjectSubscription { closed: false, subject_ref, item }
 	}
 }
 
-impl<'a, T, O> Unsubscribable for SubjectSubscription<'a, O> where O: Observer<Value=T, Error=RxError> {
+impl<'a, T, O> Unsubscribable for SubjectSubscription<'a, O> where O: ObserverLike<Value=T, Error=RxError> {
 	fn unsubscribe(&mut self) {
 		if !self.closed {
 			let mut observers = self.subject_ref.borrow_mut();
