@@ -3,11 +3,11 @@ use std::time::Duration;
 use std::sync::mpsc::channel;
 
 use crate::observable::{Observable, Unsubscriber};
-use crate::observer::ObserverLike;
+use crate::observer::{ObserverLike};
 use crate::error::RxError;
 
-pub(crate) mod map;
 pub(crate) mod filter;
+pub(crate) mod map;
 
 /// `of` creates a finite number of observables with a defined value.
 /// ```rust
@@ -22,15 +22,14 @@ pub(crate) mod filter;
 /// ```
 pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 	where O: ObserverLike<Value=T, Error=RxError> {
-	let observer = move |mut subscriber: O| {
+	Observable::new(move |mut subscriber: O| {
 		for value in values {
 			subscriber.next(value);
 		}
 		subscriber.complete();
 
 		Unsubscriber::new(|| {})
-	};
-	Observable::new(Box::new(observer))
+	})
 }
 
 /// `interval` creates an infinite observable that emits sequential numbers every specified
@@ -49,12 +48,8 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 ///   || println!("completed")
 /// );
 ///
-/// let j = thread::spawn(move || {
-///   thread::sleep(Duration::from_millis(5));
-///   subscription.unsubscribe();
-/// });
-///
-/// j.join().unwrap();
+/// thread::sleep(Duration::from_millis(5));
+/// subscription.unsubscribe();
 /// ```
 pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
 	where O: ObserverLike<Value=u64, Error=RxError> + Send + 'static {
