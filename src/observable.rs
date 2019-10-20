@@ -3,6 +3,7 @@ use crate::error::RxError;
 use crate::observer::{Observer, ObserverLike};
 use crate::operators::map::{MapPredicate, MapObserver};
 use crate::operators::filter::{FilterObserver, FilterPredicate};
+use crate::operators::delay::DelayObserver;
 
 pub struct Unsubscriber {
 	func: Box<dyn FnMut()>
@@ -68,6 +69,19 @@ impl<'a, T: 'a, O: 'a> Observable<'a, T, FilterObserver<T, O>>
 		Observable::new( move |destination: O| {
 			let filter_observer = FilterObserver::new(destination, predicate);
 			let mut subscription = self.subscribe(filter_observer);
+
+			Unsubscriber::new(move || subscription.unsubscribe())
+		})
+	}
+}
+
+impl<'a, T: 'a, O: 'a> Observable<'a, T, DelayObserver<T, O>>
+	where O: ObserverLike<Value=T, Error=RxError> {
+
+	pub fn delay(self, value: u64) -> Observable<'a, T, O> {
+		Observable::new( move |destination: O| {
+			let delay_observer = DelayObserver::new(destination, value);
+			let mut subscription = self.subscribe(delay_observer);
 
 			Unsubscriber::new(move || subscription.unsubscribe())
 		})

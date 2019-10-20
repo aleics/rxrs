@@ -6,6 +6,7 @@ use crate::observable::{Observable, Unsubscriber};
 use crate::observer::{ObserverLike};
 use crate::error::RxError;
 
+pub(crate) mod delay;
 pub(crate) mod filter;
 pub(crate) mod map;
 

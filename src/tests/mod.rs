@@ -1,3 +1,4 @@
+mod delay;
 mod filter;
 mod interval;
 mod map;
