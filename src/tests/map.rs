@@ -11,6 +11,15 @@ fn map_i32() {
 }
 
 #[test]
+fn map_i32_to_string() {
+	let obs = of(&[1, 2, 3])
+		.map(|item| item.to_string());
+
+	assert!(values_sent(&obs, &[String::from("1"), String::from("2"), String::from("3")]));
+	assert!(is_completed(&obs));
+}
+
+#[test]
 fn map_str() {
 	let data = ["Hello"];
 	let obs = of(&data)
