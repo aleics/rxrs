@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use crate::error::RxError;
 use crate::subscription::{SubjectSubscription, TrackedSubjectObservers, Unsubscribable};
 use crate::observer::{ObserverLike, Observer};
-use crate::observable::{ObservableLike, Observable, Unsubscriber};
+use crate::observable::{ObservableLike};
 
 #[derive(Default)]
 pub struct Subject<T, O> where O: ObserverLike<Value=T, Error=RxError> {
