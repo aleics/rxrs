@@ -5,7 +5,6 @@ use rxrs::subject::Subject;
 use rxrs::observable::ObservableLike;
 use rxrs::subscription::Unsubscribable;
 use rxrs::operators::{of, interval};
-use rxrs::observer::ObserverLike;
 
 fn main() {
 	let first_subject = Subject::new();
@@ -30,15 +29,4 @@ fn main() {
 
 	sleep(Duration::from_millis(5));
 	second_sub.unsubscribe();
-
-	////
-
-	let third_subject = Subject::new();
-	let third_obs = third_subject.as_observable();
-	let mapped = third_obs
-		.map(|value| value * 2);
-
-	mapped.subscribe_next(|value| println!("{}", value));
-
-	third_subject.next(&1);
 }

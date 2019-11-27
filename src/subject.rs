@@ -15,14 +15,6 @@ impl<'a, T, O> Subject<T, O> where O: ObserverLike<Value=T, Error=RxError> {
 	pub fn new() -> Subject<T, O> {
 		Subject { closed: false, observers: RefCell::new(Vec::new()) }
 	}
-
-	pub fn as_observable(&self) -> Observable<T, O> {
-		Observable::new(move |destination| {
-			self.subscribe(destination);
-
-			Unsubscriber::new(|| {})
-		})
-	}
 }
 
 impl<'a, T> Subject<T, Observer<T>> {
