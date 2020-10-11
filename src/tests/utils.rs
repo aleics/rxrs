@@ -1,35 +1,36 @@
-use crate::observable::Observable;
-use crate::observer::Observer;
 use std::sync::mpsc::channel;
 
+use crate::observable::Observable;
+use crate::observer::Observer;
+
 pub fn values_sent<T>(observable: &Observable<T, Observer<T>>, expected: &[T]) -> bool
-	where T: 'static + Clone + PartialEq + Sync + Send {
-	let (tx, rx) = channel();
+    where T: 'static + Clone + PartialEq + Sync + Send {
+    let (tx, rx) = channel();
 
-	let mut result = Vec::new();
-	observable.subscribe_next(move |value| {
-		tx.send(value.clone()).unwrap();
-	});
+    let mut result = Vec::new();
+    observable.subscribe_next(move |value| {
+        tx.send(value.clone()).unwrap();
+    });
 
-	for _ in expected {
-		if let Ok(value) = rx.recv() {
-			result.push(value);
-		} else {
-			return false;
-		}
-	}
+    for _ in expected {
+        if let Ok(value) = rx.recv() {
+            result.push(value);
+        } else {
+            return false;
+        }
+    }
 
-	for i in 0..expected.len() {
-		if result[i] != expected[i] {
-			return false;
-		}
-	}
-	true
+    for i in 0..expected.len() {
+        if result[i] != expected[i] {
+            return false;
+        }
+    }
+    true
 }
 
 pub fn is_completed<T>(observable: &Observable<T, Observer<T>>) -> bool {
-	let (tx, rx) = channel();
-	observable.subscribe_complete(move || tx.send(true).unwrap());
+    let (tx, rx) = channel();
+    observable.subscribe_complete(move || tx.send(true).unwrap());
 
-	rx.try_recv().is_ok()
+    rx.try_recv().is_ok()
 }

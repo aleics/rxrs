@@ -1,10 +1,10 @@
-use std::thread::{spawn, sleep};
-use std::time::Duration;
 use std::sync::mpsc::channel;
+use std::thread::{sleep, spawn};
+use std::time::Duration;
 
-use crate::observable::{Observable, Unsubscriber};
-use crate::observer::{ObserverLike};
 use crate::error::RxError;
+use crate::observable::{Observable, Unsubscriber};
+use crate::observer::ObserverLike;
 
 pub(crate) mod delay;
 pub(crate) mod filter;
@@ -22,15 +22,15 @@ pub(crate) mod map;
 /// );
 /// ```
 pub fn of<T, O>(values: &[T]) -> Observable<T, O>
-	where O: ObserverLike<Value=T, Error=RxError> {
-	Observable::new(move |mut subscriber: O| {
-		for value in values {
-			subscriber.next(value);
-		}
-		subscriber.complete();
+    where O: ObserverLike<Value=T, Error=RxError> {
+    Observable::new(move |mut subscriber: O| {
+        for value in values {
+            subscriber.next(value);
+        }
+        subscriber.complete();
 
-		Unsubscriber::new(|| {})
-	})
+        Unsubscriber::new(|| {})
+    })
 }
 
 /// `interval` creates an infinite observable that emits sequential numbers every specified
@@ -53,27 +53,27 @@ pub fn of<T, O>(values: &[T]) -> Observable<T, O>
 /// subscription.unsubscribe();
 /// ```
 pub fn interval<'a, O>(interval_time: u64) -> Observable<'a, u64, O>
-	where O: ObserverLike<Value=u64, Error=RxError> + Send + 'static {
-	let observer = move |subscriber: O| {
-		let (tx, rx) = channel();
-		spawn(move || {
-			let mut count = 0;
+    where O: ObserverLike<Value=u64, Error=RxError> + Send + 'static {
+    let observer = move |subscriber: O| {
+        let (tx, rx) = channel();
+        spawn(move || {
+            let mut count = 0;
 
-			loop {
-				sleep(Duration::from_millis(interval_time));
-				subscriber.next(&count);
+            loop {
+                sleep(Duration::from_millis(interval_time));
+                subscriber.next(&count);
 
-				count += 1;
+                count += 1;
 
-				if rx.try_recv().is_ok() {
-					break;
-				}
-			}
-		});
+                if rx.try_recv().is_ok() {
+                    break;
+                }
+            }
+        });
 
-		Unsubscriber::new(move || {
-			tx.send(()).unwrap();
-		})
-	};
-	Observable::new(Box::new(observer))
+        Unsubscriber::new(move || {
+            tx.send(()).unwrap();
+        })
+    };
+    Observable::new(Box::new(observer))
 }
